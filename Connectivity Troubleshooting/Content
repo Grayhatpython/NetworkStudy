@@ -1,0 +1,35 @@
+- Ping
+- ICMP ( Internet Control Message Protocol )
+- Src ICMP Echo Request <-> Dst ICMP Echo Reply
+- 양방향 연결 상태 확인 
+- 출발지에서 목적지에 도달할 수 있는지와 목적지에서 다시 출발지로 회신이 도달 가능한지 여부 확인
+
+- [ Success ]
+-- 성공 , 라우터가 ARP 캐시를 업데이트 중이라면 첫 핑이 실패하는 일은 흔하다.
+- [ ..... ] 
+-- 핑에 실패 , 라우터에 해당하는 경로가 없거나 목적지의 IP 주소가 응답이 없는 경우
+- [ UUUUU ]
+-- 도달 불가능 , 라우터가 패킷을 폐기할 떄 이런 경우가 발생 , 접근 제어 목록 ( ACL )에 의해 막히는 경우
+
+- Extended Ping
+- ping
+- Protocol [ip ] : Enter ( Default )
+- Target IP address : ( Ex. 10.1.2.10 ) 
+- Repeat count [5] : Enter ( Default ) or 핑을 계속 보내서 상태 점검을 할 경우
+- Datagram size [100] : Enter ( Default ) or MTU Problem -  Check by sending packets of various sizes
+- Timeout in seconds [2] : Enter ( Default )
+- Extended commands [n] : y
+- Source address or interface : ( Ex. 10.0.1.1 ) - 문제를 겪고 있는 클라이언트가 있는 IP 주소를 입력
+- Remain All Enter
+
+- Traceroute
+- 트래픽이 네트워크를 타고 이동할 때의 경로를 추적
+- IP Header에 있는 TTL ( Time To Live ) 필드를 이용
+
+-- TTL 
+--- 경로 루프 방지 메커니즘
+--- 라우터가 패킷을 하나의 인터페이스로부터 다른 인터페이스로 전달할 때마다 TTL이 1씩 감소
+--- TTL이 0이 되는 순간 패킷 폐기
+--- 패킷이 폐기 될 때 발신자에게 시간 초과라는 메세지를 보내 TTL의 초과로 인해 패킷이 폐기되엇다는 사실을 알린다.
+
+- traceroute를 통해 끊어진 라우터에서 show ip route를 통해 경로를 확인해보자
