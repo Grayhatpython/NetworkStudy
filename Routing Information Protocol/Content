@@ -1,4 +1,5 @@
 - RIP
+- 내부 게이트웨이 라우팅 프로토콜 
 - Distance Vector routing protocol ( 거리 벡터 라우팅 프로토콜 )
 - hop -> 트래픽이 최종 목적지에 도달하기 까지 경유 해야하는 라우터의 갯수
 - hop count를 metric으로 사용
@@ -52,3 +53,14 @@
 
 - show ip rip database
 - RIP 데이터베이스 확인 명령어
+
+- Default Route Injection
+- 인터넷으로 나가는 모든 트래픽에 대해 기본 정적 경로가 있다고 할 때 모든 라우터에 기본 정적 경로 전부를 하나하나 구성하기는 힘들다
+- 이런 경우 인터넷으로 나가기 직전 마지막으로 연결된 라우터에 기본 정적 경로를 구성한 뒤 이를 통보하고 RIP으로 주입 하는 것
+- 모든 내부 라우터가 자동으로 이 경로를 학습하게 된다.
+
+- ip route 0.0.0.0 0.0.0.0 203.0.113.2 [ next hop address ]
+- router rip
+- default-information originate
+-- 기본 정적 경로가 RIP에 주입되어 다른 라우터들에게 통보하게 되고 이 라우터들은 내부 RIP 라우터들에게 이 정보를 통보
+
