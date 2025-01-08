@@ -303,3 +303,289 @@
 - O -> 인트라 영역 경로 , 목적지가 같은 경로
 - O IA -> 다른 영역에서 ABR에 의해 학습된 영역 간 경로
 - O*E1 or O*E2 -> OSPF로 재배포되었다
+
+- 비용 메트릭
+- 대역폭 vs 클럭 비율과 속도 ( Bandwidth VS Clock Rate and Speed ) 
+
+- speed 
+- 이더넷 인터페이스의 물리적 전송 속도는 speed 명령어로 지정된다.
+- GigabitEthernet 인터페이스는 기본으로 초당 1,000Mbit( 1Gbps )를 전송
+- fastEthernet 인터페이스는 기본으로 초당 100Mbps를 전송
+- speed 설정 시 링크 양쪽에 수동으로 설정해야 하고 speed가 동일하지 않으면 문제 발생
+
+- clock Rate
+- 직렬 인터페이스( Serail interface )에서 작동하는 명령어
+- 직렵 인터페이스는 WAN 링크에서 흔히 사용이 되었었고 지금은 자주 쓰지이 않는다.
+- 직렬 인터페이스의 물리적 전송 속도는 clock rate 명령어로 지정
+- 기본 속도는 1.544Mbps
+- clock rate 64000 -> 물리적 전송 속도는 64kbps
+- clock rate 명령어를 사용해 kbps로 변경할 수 있다.
+- clock Rate 설정 시 링크 양쪽에 수동으로 설정해야 하고 clock rate가 동일하지 않으면 문제 발생
+
+- Bandwidth
+- 인터페이스는 기본 대역폭을 가지고 있다.
+- 일반적으로 인터페이스의 물리적 전송 속도와 동일
+- fastEthernet -> 100Mbps
+- Serail Interface -> 1.544Mbps
+- 인터페이스에 설정된 대역폭은 물리적 전송 속도에는 영향을 미치지 않는다.
+- fastEthernet 인터페이스에 Bandwidth를 50Mbps로 설정해도 전송 속도는 여전히 100Mbps다
+- 대역폭 설정은 라우터의 소프트웨어 정책에 영향을 준다.
+- EIGRP or OSPF와 같은 라우팅 프로토콜로 어떤 경로가 선댁될지, 혹은 QoS에 의해 얼마만큼의 대역폭이 보장될지
+
+- OSPF 메트릭
+- 라우터는 해당 영역 내의 모든 목적지로 가는 링크 및 그 비용에 대해 학습
+- 라우터는 목적지에 도달하는데 드는 가장 낮은 비용을 기준으로 경로를 선택하며 그 경로가 라우팅 테이블에 포함
+
+- 다중 영역 OSPF 네트워크에서는 ABR이 연결된 각 영역의 정보를 알고 있으며
+- 각 라우터는 자신의 영역 내의 각 IP 서브넷에 대한 개별 경로와
+- ABR을 통해 가는 다른 영역에 대한 요약 경로를 가지고 있다.
+- 자신의 영역 내의 목적지에 대해서는 라우터가 사용할 수 있는 모든 링크를 검토하고 전체 비용이 가장 낮은 경로 선택
+- 다른 영역의 목적지에 대해서는 라우터가 ABR에 도달하기 위한 모든 가능한 링크를 검토하고
+- ABR까지의 전체 비용이 가장 낮은 경로를 선택하고 ABR이 그곳에서 최적의 경로를 선택
+
+- SPF ( Shortest Path First Algorithm ) 최단 경로 우선 알고리즘은 각 목적지 네트워크로 가는 모든 가능한
+- 경로의 전체 비용을 계산하고 가장 낮은 비용의 경로를 선택
+- 전체 비용은 모든 출력 인터페이스의 누적 비용
+- OSPF가 여러 경로가 있을 때 단지 목적지에 도달하기 위해 사용할 수 있는 모든 다른 출력 인터페이스의 비용을 살펴보고
+- 누적 비용이 가장 낮은 경로가 선호되는 경로가 된다.
+- 링크 양쪽의 인터페이스에 동일한 비용이 설정되었는지 확인해야 한다. -> 비대칭 라우팅 발생
+- 링크의 양쪽에 다른 비용이 있다면 트래픽이 서로 다른 방향으로 다른 경로를 택할 수 있다.
+
+- 참조 대역폭 ( Reference Bandwidth )
+- 더 높은 대역폭의 인터페이스가 자동으로 선호
+- 비용이 계산되는 방식은 참조 대역폭을 실제 인터페이스 대역폭으로 나누는 것
+- 기본 참조 대역폭은 100Mbps 
+- fastEthernet -> 비용은 1 ( 100 / 100 )
+- Serail Interface -> 비용은 64 ( 100 / 1.544 )
+
+- OSPF에서는 100Mbps 초과의 모든 인터페이스를 동일하게 취급하기 떄문에 가능한 최상의 비용은 1이다
+- 따라서 고속 이더넷, 기가비트 이더넷, 10기가비트 이더넷 등은 모두 기본적으로 비용이 1로 설정되며
+- 현대의 고속 이더넷 인터페이스를 사용하는 네트워크에서 바람직하지 않는 라우팅을 초래한다.
+- 이를 강제할 수 있는 방법은 참조 대역폭을 변경하는 것이다
+- router ospf 1
+- auto-cost reference-bandwidth 100000
+- 모든 라우터에 적용해서 일관성을 보장하자
+
+- bandwidth 변경 명령어
+- show interface serial1/0
+- BW 1544 Kbit/sec
+- interface serial1/0
+- bandwidth 768
+- 물리적 수준에서는 링크가 여전히 클럭 속도로 작동할 것이다.
+- 대역폭을 설정하는 것은 실제 물리적 속도를 변경하지 않으며 IOS가 소프트웨어 정책을 해당 인터페이스를 보는 방식을 변경
+- 해당 링크의 전체 비용을 조작할 수 있는 방법
+
+- 더 나은 방법은 직접 비용을 변경하는 것
+- 이렇게 하면 QoS와 같은 다른 소프트웨어 정책에 영향을 미치지 않는다.
+- interface FastEthernet 0/0
+- ip ospf cost 50
+
+- 링크 비용 확인 
+- show ip ospf interface FastEthernet 0/0
+
+- 라우터에서 OSPF를 활성화하면 먼저 OSPF 이웃을 발견
+- 라우터는 이들과 인접성을 형성하고 OSPF로부터 학습한 모든 네트워크를 포함한 링크 상태 데이터베이스를 구축
+- 그 다음 각 네트워크에 대한 최단 경로를 계산하고 최적의 경로를 라우팅 테이블에 기재
+- 네트워크에서 링크가 다운되는 등의 변화가 발생하면 라우터는 네트워크 변경에 대응하여 라우팅 테이블을 업데이트
+
+- Hello Packet
+- OSPF가 인터페이스에서 활성화되면 라우터가 보내고 수신하는 패킷 
+- 라우터에서 전역적으로 OSPF를 활성화하고 네트워크 명령문으로 인터페이스에서 OSPF를 활성화하면 
+- 라우터는 Hello 패킷을 보내고 수신하기 시작하며 해당 링크에서 다른 OSPF 라우터와 인접성을 형성
+
+- passive-interface에서는 제외 -> 내부 네트워크에 대한 정보를 외부로 전송하거나 업데이트를 공유하지 않는다
+- 해당 인터페이스에 구성된 네트워크가 내부적으로 광고되어 내부 라우터가 해당 네트워크를 알 수 있게 되지만 그 링크를 통해 내부 정보를 외부로 제공하지는 않는다. 
+- 루프백 인터페이스도 패시브 인터페이스 설정
+
+- DBD ( DataBase Description )
+- 인접 라우터가 서로 알고 있는 네트워크를 DBD 패킷으로 알려주는 것
+
+- LSR ( Link State Request )
+- 라우터가 이웃으로부터 받은 DBD에 있는 네트워크에 대한 정보가 부족하면 해당 이웃에게 LSR을 보내 추가 정보 요청
+
+- LSA ( Link State Advertisement )
+- 라우팅 업데이트
+
+- LSU ( Link State Update )
+- 업데이트 해야 할 LSA 목록을 포함하는 링크 상태 업데이트
+- 링크가 다운되었을 때 플러딩 중에 사용
+
+- LSAck
+- OSPF로부터 정보를 포함한 패킷을 수신할 때 수신 라우터가 LSA를 확인하고 이를 보낸 라우터에게 확인 응답을 보낸다.
+
+- OSPF Protocol
+- EIGRP와 유사하게 OSPF는 자체 프로토콜 번호를 사용
+- 표준 IP 패킷의 3계층 IP 헤더에는 프로토콜을 위한 필드가 있다.
+- TCP : 6
+- UDP : 17
+- OSPF : 89
+
+- OSPF Packet
+- Version Number | Type | Packet Length | Router ID | Area ID | Checksum | Authentication Type | Authentication | Data
+- Version : OSPFv2 or OSPFv3
+- Type : Hello(1) , DBD(2) , LSR(3) , LSU(4) , LSAck(5) -> LSA는 자체 패킷 타입이 없으며 LSUs에 포함
+- Authentication Type : No-Password(0) , Plain-text-Password(1), MD5-authentication(2)
+- data : 라우팅 업데이트와 같은 데이터 페이로드
+
+
+
+- Hello 패킷이 전송될 떄 모든 OSPF 라우터의 멀티캐스트 주소로, 지정된 멀티캐스트 주소 224.0.0.5로 멀티캐스트되며
+- 기본적으로 10초마다 Hello 패킷이 전송
+- 이는 인접성을 형성하고 서로 경로를 교환하는 것 이외에도 다른 라우터가 여전히 작동 중인지 확인
+
+- Hello Packet Contents
+- Router ID : 각 OSPF 라우터를 고유하게 식별하는 32bit number ( IPv4 같은 )
+- Hello Interval : 라우터가 Hello 패킷을 보내는 빈도. 기본값은 10초
+- Dead Interval : 라우터가 이웃으로부터 신호를 기다리는 시간, 이 시간이 지나면 서비스 중단으로 선언, 라우터가 이웃으로부터 Dead Interval 동안 Hello 패킷을 받지 못하면 그 이웃이 다운되었다고 가정. 기본값은 Hello Interval의 4배
+- Heighbors : 라우터가 Hello 패킷을 받은 인접 OSPF 이웃의 목록
+- Area ID : OSPF 라우터가 ABR인 경우 여러 다른 영역에 있는 인터페이스를 가질 수 있다, 그래서 영역은 링크, 즉 인터페이스 수준에서 구성된다.
+- Router Priority : 지정 라우터 (DR)와 백업 지정 라우터 (BDR)를 선택하는데 사용되는 8bit number
+- DR and BDR IPv4 Address : If known
+- Authentication Flag : 인증이 구성된 경우에 포함 - OSPF 구성에 비밀번호를 포함 - 양쪽에 라우터가 일치하는 비밀번호를 가지자
+- Stub Area Flag : 해당 영역이 Stub 영역인지, Stub 영역은 영역 외부의 경로를 학습하는 대신 ABR로의 기본 경로를 가진다.
+- Stub 영역에서는 ABR을 통해 들어가고 나오는 단 하나의 경로만 존재, 이는 네트워크 전체의 모든 경로를 학습하는 대신 Stub 영역 내 라우터에 대한 부하를 줄여준다
+
+- MTU ( Maximum Transmission Unit )
+- 라우터의 링크를 통해 전송될 수 있는 패킷의 최대 크기
+- 기본값 1500 bytes
+- 라우터 인터페이스 설정
+
+- interface GigabitEthernet 0/0
+- mtu 1480 -> 인터페이스 MTU 설정
+- ip mtu 1460 -> IP MTU 설정
+- 일반적으로는 하나만 변경하는데 IP MTU를 설정한다
+
+- show interface GigabitEthernet 0/0 -> 인터페이스 MTU 확인
+- show ip interface GigabitEthernet 0/0 -> IP MTU 확인
+
+- MTU가 다른 상황에서 라우터에 OSPF를 설정하면 
+- show ip ospf neighbors 명령에서 서로를 이웃으로 인식하게 된다.
+- 그러나 실제로 서로 OSPF 경로를 공유할 수는 없다.
+
+- 라우터에 OSPF를 전역적으로 활성화한 상태 Neighbor States 
+- EX) 
+- 172.16.1.1/24 [R1] 10.0.0.1/30 <--------> 10.0.0.2/30 [R2] 172.16.2.1/24
+-             Hello Packet ---------------------------->
+-     [I am Router ID 172.16.1.1 and I have no neighbors (to 224.0.0.5)]
+-   기본적으로 루프백 인터페이스가 없으므로 가장 높은 물리적 주소를 라우터 ID로 사용
+-             <---------------------------- Hello Packet
+-     [I am Router ID 172.16.2.1 and I see 172.16.1.1 (to 10.0.0.1)]
+- 만약 지금 다른 OSPF 이웃이 있다면 이 정보에 포함시킨다. 그래서 R1에게 모든 이웃에 대해 알려주며 R1도 포함된다.
+-             Hello Packet ---------------------------->
+-     [I am Router ID 172.16.2.1 and I see 172.16.2.1 (to 10.0.0.2)]
+-   라우터들이 이웃 목록에서 서로를 볼 수 있어야 한다는 요구 사항을 충족
+-   라우터들은 양방향 상태, 그러나 아직 경로를 교환하기 시작하지는 않았다
+
+-               DBD Packet ---------------------------->
+-          [I will start Exchange with my Router Id 172.16.1.1]
+-               <---------------------------- DBD Packet
+-    [No I will start Exchange because I have higher Router ID 172.16.2.1]
+- 누가 교환을 시작할 것인지에 대한 협상일 뿐 가장 높은 라우터 ID를 가진 쪽이 될것이다
+
+-                         서로 라우팅 정보 교환
+-               <---------------------------- DBD Packet
+-                           [LSDB Summary ]
+-   링크 상태 데이터베이스의 요약본으로 R1이 이미 정보를 가지고 있을 수 있기 때문에 전체 정보를 보내지 않는다. 네트워크 부하를 줄이기 위해
+-   자신이 알고 있는 네트워크에 대한 요약만 보낸다.
+-               LSAck Packet ---------------------------->
+-                           [Acknowledged ]
+-   R1은 그 패킷이 수신되었음을 확인하는 유니캐스트를 R2에게 다시 보낸다.
+-               DBD Packet ---------------------------->
+-                           [LSDB Summary ]
+-   그 다음 R1ㄷ은 데이터베이스 설명자와 함께 자신의 LSDB 요약을 R2에 보낸다.
+-               <---------------------------- LSAck Packet
+-                           [Acknowledged ]
+-   R2은 그 패킷이 수신되었음을 확인하는 유니캐스트를 R1에게 다시 보낸다.
+
+-                       로딩 상태 or 로딩 단계
+-               <---------------------------- LSR Packet
+-                 [I need full info on 172.16.1.0/24]
+-               LSU Packet ---------------------------->
+-                           [Here`s the info ]
+-               LSR Packet ---------------------------->
+-                 [I need full info on 172.16.2.0/24]
+-               <---------------------------- LSU Packet
+-                           [Here`s the info ]
+
+-                                  Full
+-               LSAck Packet ---------------------------->
+-                              [Acknowledged]
+-               <---------------------------- LSAck Packet
+-                              [Acknowledged]
+- 이 단계에서는 서로 인접 상태에 있으며 서로 라우팅 정보를 교환했기 때문에 완전 상태에 있다.
+
+- Neighbor State Summary
+- Down - INIT - 2-WAY - Exstart - Exchange - Loading - Full
+- 위에는 점대점 링크에서 작동하는 방식 설명
+- 이더넷과 같은 다중 액세스 세그먼트에서는 약간의 차이가 있으며 지정 라우터(DR)와 백업 지정 라우터(BDR)을 사용한다.
+
+- debug 
+- debug ip ospf adjacency
+- undebug all -> 디버그 해제
+
+- hello 패킷 인터벌 변경
+- ip ospf hello-interval [number]
+- 다른 타이머 설정으로 OSPF 인접성 해제
+
+- 이를 디버깅 하는 명령어
+- debug ip ospf Hello
+- Mismatched hello parameters
+
+- show ip ospf neighbor
+- state에 Full이 아닌 Exchange가 있는 경우는 이웃이 서로를 발견하고 인접성을 형성했지만 실제로 경로를 교환하지 않는 상태
+- 이 문제의 가장 일반적인 원인은 MTU 불일치 
+- ip mtu 1460
+
+- debug ip ospf adjacency
+- Nbr [ IP ] has smalled interface MTU
+- 양쪽의 인터페이스 MTU를 비교
+
+- show ip ospf neighbor
+
+- Multiaccess Segments
+- 여러 개의 라우터가 있을 수 있는 이더넷과 같은 다중 액세스 세그먼트에서는모든 라우터가 서로 완전 OSPF 인접성을 형성하는 것을 비효율
+- 일종의 여러 라우터 중 하나가 마스터로 선출되어 다른 라우터들이 마스터와 정보를 공유하여 해당 정보를 다른 라우터에 반영할 수 있도록 하는 게 더 좋을 것이다
+- 정보를 마스터로만 전송한 뒤 마스터가 처리하게끔 
+- 마스터가 DR, 지정 라우터로 불린다
+- 이럴 경우 마스터에 문제가 생기면 다른 모든 곳에 문제가 생기므로 이를 방지하기 위해 다중화를 해줘야 한다.
+- 즉 마스터인 DR 지정 라우터도 두고 백업 지정 라우터인 BDR도 두어 DR의 이상이 발생할 경우를 대비한다.
+
+- 가장 우선 순위가 높은 라우타가 DR이 되고 두 번쨰로 우선 순위가 높은 라우터가 BDR이 된다.
+- 라우터의 우선 순위 기본값은 1이고, 이 숫자가 높을 수록 더 선호되는 라우터다
+- 가능한 값은 0~255로, 255가 가장 좋은 값이다
+- 값이 같을 경우 더 높은 라우터 ID를 가진 라우터가 선출된다.
+
+- DB과 BDR의 선출은 라우팅 정보가 교환되기 전인 양방향 ( 2-WAY ) 단계에서 이루어진다.
+- 모든 라우터가 서로 전체 정보를 공유하는게 아니라 DR과 BDR에게만 공유하므로
+- 그래서 라우터간에 라우팅 정보를 교환하기 전에 이를 설정해야 합니다.
+- 다중 액세스 세그먼트에서 발생 
+
+- DR로 지정될 라우터를 수동으로 설정 명령어 -> 인터페이스 수준에서
+- interface FastEthernet 0/0
+- ip ospf priority 100
+
+- ip ospf priority 0 -> 선출되지 않게 할려면
+
+- DR과 BDR은 네트워크 세그먼트 상의 모든 라우터와 완전 이웃 상태를 형성
+- 다른 라우터들의 이웃 상태는 양방향 ( 2-WAY ) 상태로 유지되며 서로 경로를 직접 교환하지 않는다.
+
+- 새로운 링크가 생기거나, 링크가 끊어지는 등 링크 상태에 변화가 생기고 이 링크가 멀티 액세스 세그먼트에 연결된 경우
+- 멀티캐스트 주소 224.0.0.6로 지정된 모든 라우터들에게 멀티캐스트 LSU, 즉 링크 상태 업데이트 패킷을 전송한다.
+- DB과 BDR만이 해당 주소로 전송된 패킷의 수신을 대기하고 있는다.
+
+- 링크 상태의 변화를 확인하게 되면 224.0.0.6으로 업데이트를 보내고 DB과 BDR 모두 그 변화에 대해 학습
+- 그러면 BDR 말고 DR만이 224.0.0.5에 있는 모든 OSPF 라우터에 그 변화를 멀티캐스트 한다.
+- 그러면 그 링크에 있는 모든 OSPF 라우터들이 그 변화를 학습하게 된다.
+- 즉, 어떤 변화가 생기면 DB과 BDR로 전송이 되고 DR이 링크에 있는 다른 라우터들에게 변화 업데이트를 보낸다.
+- 변화가 생기면 그 링크에 있는 모든 라우터가 그 변화를 학습할 수 있다.
+
+- show ip ospf neighbor
+- state 
+- FULL/DR 
+- FULL/BDR
+
+- 세그먼트 상에서 DR을 일일이 확인하지 않고 특정 라우터에서 찾을려면
+- show ip ospf interface FastEthernet0/0
+- Designated Router (ID) [ Router ID ]
+
+- clear ip ospf process -> 빠른 적용 확인. 현업 사용 신중히
