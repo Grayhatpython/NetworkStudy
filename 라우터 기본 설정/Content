@@ -78,3 +78,26 @@
 - 동시 텔넷 접속 수 확인하는 명령어다.
 - password cisco
 - 텔넷용 암호를 설정
+
+- show startup-config
+
+- show running-config
+- 명령어를 저장하지 않으면 전원을 끄면 명령어가 사라진다
+- 현재 적용되고 있는 설정 내용 확인
+
+- copy running-config startup-config 
+- write memory
+- 현재의 DRAM에 있는 설정 내용을 NVRAM에 저장하는 명령어
+
+- show config
+- 저장된 내용확인
+
+- NVRAM에 저장된 설정은 장비가 재부팅될때 적용
+- 현재 NVRAM에 저장된 내용을 DRAM으로 복하사여 바로 적용시키려면
+- copy startup-config running-config
+- 기존의 DRAM에 있던 내용에 NVRAM의 내용이 추가
+
+- 저장된 설정 지우기
+- erase startup-config
+- NVRAM에 저장되어 있는 설정을 삭제한다.
+- reload 

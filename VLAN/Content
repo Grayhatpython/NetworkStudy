@@ -1,0 +1,284 @@
+- 로컬 영역 네트워크 설계
+- 단일 건물 or 같은 로컬 캠퍼스 내 서로 몇 백 미터 거리를 가진 여러 건물을 대상으로
+- 최적의 설계 과정에서 네트워크 토폴로지는 Access, distribution, core Layer 로 나누어진다.
+
+- 각 계층이 가지고 있는 개별 설계 원칙과 특징
+
+- Access Layer
+- 데스크톱 컴퓨터나 서버, IP 전화와 같은 종단 호스트 ( End Host )들은 항상 네트워크 액세스층으로 연결된다.
+- 적당한 비용으로 포트 개수를 높게 설계해 많은 종단 호스트를 지원할 수 있는 계층
+- 보통 데스트톱 컴퓨터는 네트워크 인터페이스 카드가 하나라서 하나의 스위치만 연결할 수 있고, 무선 연결의 
+- 경우네는 하나의 액세스 포인트와 연결된다.
+- 서버에는 종종 이중 NIC가 있어서 다중화가 가능하다.
+- 이런 경우 서버는 다중화 액세스층 스위치 한 쌍에 연결이 된다.
+- 클라이언트 액세스 보안 방안, 포트 보안 등은 액세스층에서 활성화된다.
+- 일반적으로 액세스층 스위치는 서로 연결이 되어 있지 않다.
+- 액세스층 스위치는 분배층 스위치로 업링크 된다.
+
+- Distribution Layer
+- Access Layer 위쪽에 Distribution Layer Switch가 있다.
+- 분배층 스위치는 액세스층의 집성 포인트 ( aggregation point ) 역할을 하고 로컬 영역 네트워크로 추가적인      - 확장성을 제공
+- 다운 스트림 액세스층 스위치는 한 쌍의 분배층 스위치 양쪽 모두 연결된다.
+- 서비스 품질 정책과 같은 소트프웨어 정책이 분배층에서 활성화된다.
+- 분배층 스위치가 코어층으로 업링크 된다.
+
+- Core Layer
+- 코어층 스위치는 한 건물에만 위치하며 그 코어층 스위치가 모든 빌딩을 한데 연결한다.
+- 분배층과 마찬가지로 한 쌍의 다중 스위치로 배포되며 다운스트림 분배층 스위치가 양쪽 모두에 연결된다.
+- 캠퍼스 내 다양한 위치에 있는 트래픽이 코어를 통해 이동하기 때문에 속도와 복원성을 중심으로 설계된다.
+- 스위치를 지연시키는 소프트웨어 정책은 코어층에서는 사용되지 않는다.
+
+- 소규모 네트워크라면 분배 및 코어층이 통합되기도 한다 -> 두 가지 기능을 모두 수행
+
+- 캠퍼스 디자인이 아래와 같을 경우
+   Core Layer         ↓                 
+Distribution Layer    ↓↑      Distribution Layer   ↓↑ 
+   Access Layer       ↓↑         Access Layer      ↓↑
+  Data Center(Server)  ↑         Building 1        ↓↑
+- 전통적인 방식의 데이터 센터 환경 내에서 트래픽이 북쪽-남쪽의 흐름을 가지는 경우에는
+- 전통적인 코어 분배 방식과 액세스층이 제대로 작동할 것이다.
+- 북쪽-남쪽 트래픽이라 함은 트래픽이 주로 위-아래로 이동한다는 것이다.
+- 트래픽은 데이터 센터의 위 아래로 이동을 해 다른 건물에 있는 클라이언트로 내려간다.
+- 트래픽은 건물 내에서 액세스층과 분배층을 통해 코어층으로 도달한 다음 다시 코어층에서 분배층 및 액세스층을 
+- 거쳐 내려온다.
+- 이처럼 Building 1에 있는 클라이언트쪽에서 본관의 데이터 센터로 이동하게 되죠
+- 이처럼 전통적인 캠퍼스 디자인 방식은 북쪽-남쪽으로 이루어 질 때 가장 좋다
+
+- 하지만 요즘 자주 쓰이는 현대적인 데이터 센터에서는 훨씬 더 많은 트래픽이 동쪽-서쪽으로 이동하는 경향을 보인다.
+- 즉, 데이터 센터 내의 실제 서버들 사이에서 트래픽이 흐르는 것이다.
+- 전통적인 방식은 많은 트래픽이 동쪽-서쪽으로 흐르는 경우에는 좋지 않다.
+
+- Spine-Leaf Data Center Design
+- 전통적인 방식과 다른 설계 방식
+   Tier 2 - Spine
+        ↓↑
+   Tier 1 - Leaf          
+  Data Center(Server)        
+- 리프 스위치들 모두가 스파인 스위치 전체로 연결된다.
+
+- 라우터
+- 3계층에서 운용
+- 호스트와 개별 IP 서브넷은 연결을 위해 라우터로 트래픽을 보내야만 한다.
+- 여러 IP 서브넷 간에 트래픽을 라우팅한다.
+- 라우터나 방화벽 상의 보안 규칙은 3계층에 있는 여러 IP 서브넷 사이에 어떤 트래픽이 허용될지를 쉽게 제어하기 위
+- 해 사용
+- 라우터는 기본적으로 브로드캐스트 트래픽을 전송하지 않으며 네트워크를 3계층의 더 작은 도메인으로 나눔으로써
+- 성능과 보안을 제공
+
+- 스위치
+- 2계층에서 운용
+- 기본적으로 브로드캐스트 트래픽을 전송
+- 스위칭된 캠퍼스 네트워크는 기본으로 하나의 거대한 브로드캐스트 도메인이다.
+- 브로드캐스트 트래픽을 여러 IP 서브넷을 포함한 모든 포트로 플러딩하기 때문에 성능 및 보안에 문제가 있다.
+
+- VLAN ( Virtual local Area Network )
+- LAN의 성능과 보안을 향상시키기 위해서 스위치에 VLAN을 구현 
+- VLAN은 LAN을 2계층의 개별 브로드캐스트 도메인으로 분할
+- 스위치에 구현된 2계층 기능
+- 보통 IP 서브넷과 VLAN에는 일대일 관계가 성립된다.
+
+- 액세스 포트를 구성하는 곳은 종단 호스트가 연결된 스위치 인터페이스
+- 액세스 포트는 하나의 특정 VLAN으로 구성
+- 스위치는 동일 VLAN 내에서만 트래픽을 허용
+
+- (config)#vlan [number]        -> vlan 생성
+- (config-vlan)#name [name]     -> vlan 이름 설정
+
+- 스위치 포트를 액세스 포트로 VLAN 구성
+- (config)#interface FastEthernet 0/1
+- (config-if)#switchport mode access
+- (config-if)#switchport access vlan [number]
+- (config)#interface range FastEthernet 0/3 - 5
+- (config-if)#switchport mode access
+- (config-if)#switchport access vlan [number]
+
+- #show vlan brief                              -> vlan 구성 확인
+
+- #show interface FastEthernet 0/1 switchport   -> 개별 포트에 대한 정보 확인
+- Access Mode VLAN: [number] ([name])
+
+- 트렁크 포트
+- Dot1Q 프로토콜
+- 스위치들 사이의 링크를 하나의 vlan으로만 트래픽을 전송하는 액세스 포트로 구성하는게 아니라
+- 모든 VLAN으로 트래픽 전송이 가능한 트렁크 포트로 구성
+- 액세스 포트는 하나의 VLAN으로만 트래픽을 전송하고 Dot1Q 트렁크는 다수의 VLAN으로 트래픽을
+- 전송해야 하는 스위치들 사이의  링크에서 구성
+
+- 이를 위해 사용된 오래된 프로토콜 중 하나가 ISL (Inter-Switch Link), 즉 스위치 간 링크다
+- Cisco 전용 프로토콜이었지만 이제는 거의 사용되지 않는다. 현재는 Dot1Q
+
+- 스위치가 트렁크 포트를 통해 트래픽들 다른 스위치로 전송할 때 올바른 VLAN으로 2계층 Dot1Q 헤더를
+- 태그하는 겁니다.
+- 패킷내에는 2계층 헤더가 있고, 그 2계층 헤더로 VLAN 정보를 삽입합니다.
+- 수신자 스위치는 그 VLAN에 속한 포트로만 트래픽을 내보낼 겁니다.
+- 스위치가 종단 호스트로 트래픽을 전송할 때는 Dot1Q VLAN 태그를 제거한다.
+- 종단 호스트는 VLAN을 인실할 수 없기 떄문에
+
+- 일반적으로 종단 호스트들은 하나의 VLAN에 속해 있고 VLAN을 인식할 수 없다
+- 따라서 그러 호스트들에 대해서는 스위치가 액세스 포트로 구성된다
+- 단, Vmware 같은 가상 호스트는 특별한 종류의 종단 호스트로 호스트의 서로 다른 IP 서브넷에 속한
+- 가상 머신들이다.
+- 예를 들어 어떤 호스트가 엔지니어링 팀을 위한 가상 머신을 실행 중일 수도 있는데
+- 그런 경우에는 어떤 가상 머신으로 트래픽을 전송하고 있는지 알 수 있게끔
+- 그 호스트까지 VLAN 트렁킹을 해야 한다.
+
+- (config)#interface FastEthernet 0/24
+- (config-interface)#description Trunk to SW2
+- (config-interface)#switchport trunk encapsulation dot1q
+- (config-interface)#switchport mode trunk
+
+- Voice VLAN Configuration
+- (config)#interface FastEthernet 0/10
+- (config-interface)#description IP Phone
+- (config-interface)#switchport mode access
+- (config-interface)#switchport access vlan 10
+- (config-interface)#switchport voice vlan 10
+
+
+- Native VLAN
+- 스위치는 트렁크 포트에서 태그되지 않는 상태로 도착하는 트래픽에 어느 vlan을 배정해야 하는지를 알고 있어야한다.
+- 스위치가 허브에 연결될 때 이런 작업이 필요햇다.
+- 허브는 1계층 장비로 VLAN을 인식할 수 없다.
+- 허브 지원을 위해 Native VLAN이 존재한다.
+- 기본 Native VLAN은 1인데 1을 사용하면 보안 문제가 있다. 따라서 사용되지 않는 VLAN으로 바꾸자
+- Native VLAN은 활성화를 위해서 트렁크의 양쪽, 즉 서로 연결된 스위치 양쪽 모두에서 일치해야 한다.
+
+- Native VLAN Configuration
+- (config)# vlan 199
+- (config-vlan)#name Native
+
+- (config)#interface GigabitEthernet 0/1
+- (config-interface)#description Trunk to SW2
+- (config-interface)#switchport trunk encapsulation dot1q
+- (config-interface)#switchport mode trunk
+- (config-interface)#switchport trunk native vlan 199
+
+- show interface gig0/1 switchport -> 확인
+- Operational Mode: trunk
+- Administrative Trunking Encapsulation: dot1q
+- Trunking Native Mode VLAN: 199 (Incative)
+
+- Limiting Allowed VLANs
+
+- Allowed VLAN Configuration
+- (config)#interface GigabitEthernet 0/1
+- (config-if)#switchport trunk allowed vlan 10,30
+- 필요한 VLAN에게만 전달하도록 제한
+
+- DTP ( Dynamic Trunking Protocol )
+- 두 개의 cisco 스위치가 케이블로 연결되면 cisco 전용의 동적 트렁킹 프로토콜을 사용하여 스위치 간에
+- 자동으로 트렁크 연결을 조율할 수 있다.
+
+- switchport mode dynamic auto
+- 인터페이스에서 구성, 이 포트가 연결된 인접 스위치 포트가 trunk 또는 desirable로  설정됐을 때 트렁
+- 크가 형셩된다.
+- 양쪽 모두 auto로 설정되어 있을 때는 트렁크가 형성되지 않는다.
+- 양쪽 모두 auto로 설정되어 있으면 트렁크가 형성되지 않고 액세스 포트로 남는다.
+- switchport mode dynamic desirable
+- 반대쪽에서 연결된 인접 스위치 포트가 trunk, desirable, 또는 auto로 설정됐을 때 르렁크 형성됨
+- switchport nonegotiate 
+- DTP 비활성
+
+- VTP ( VLAN Trunking Protocol )
+- VTP 서버로 구성된 스위치에서 VLAN을 추가,편집,삭제할 수 있게 해주고 
+- VTP 클라이언트로 구성된 다른 스위치들은 VLAN 데이터베이스를 서버와 동기화한다.
+- 포트 단계에서의 액세스 포트 또는 트렁크 포트 구성은 직접 수행
+- 그러나 모든 스위치의 VLAN 데이터베이스를 구성하는 번거로움은 피할 수 있다.
+
+- VTP Server 
+- VLAN을 추가,편집 또는 삭제할 수 있다
+- VLAN 데이터베이스를 더 높은 개정 번호를 가진 다른 서버와 동기화한다.
+
+- VTP Client
+- VLAN 데이터베이스를 개정 번호가 가장 높은 서버와 동기화한다.
+
+- VTP Transparent
+- VTP 도메인에 참여하지 않는다.
+- VLAN 정보를 어떻게 하진 않고 그냥 전달만 한다.
+- VLAN 데이터베이스를 동기화하지 않아서 따로 설정해야 한다.
+- VTP Transparent 스위치에서는 로컬 vlan 데이터베이스에 있는 vlan만 추가,편집 또는 삭제할 수 있다.
+
+- (config)# vtp domain [name]
+
+- (config)# vtp mode server
+- (config)# vtp mode client
+- (config)# vtp mode transparent
+
+- #show vtp status
+
+
+- VLAN 간 라우팅
+
+- 각 VLAN 상의 기본 게이트웨이로서 작동하는 개별 인터페이스를 가진 라우터를 사용
+- R1(config)#interface FastEthernet 0/1
+- R1(config-interface)#ip address 10.10.10.1 255.255.255.0
+- R1(config)#interface FastEthernet 0/2
+- R1(config-interface)#ip address 10.10.20.1 255.255.255.0
+- R1(config)#ip route 0.0.0.0 0.0.0.0 203.0.113.2
+
+- SW1(config)#interface FastEthernet 0/1
+- SW1(config-if)#switchport mode access
+- SW1(config-if)#switchport access vlan 10
+- SW1(config)#interface FastEthernet 0/2
+- SW1(config-if)#switchport mode access
+- SW1(config-if)#switchport access vlan 20
+
+- 각 VLAN 모두에 별개의 물리적 인터페이스가 필요하다 -> 부족할 수 있다.
+- 캠퍼스 내의 IP 서브넷 사이에서 라우팅 되는 트래픽이 물리적 이더넷 케이블을 따라 라우터로 이동해야만 한다.
+- 트래픽이 물리적 케이블을 따라 위아래로 전송되는 방식은 스위치의 백플레인을 통해 라우팅되는 것보다 느리다.
+
+
+- Router on a stick !!
+- 물리적 인터페이스 부족 해결
+- 물리적 인터페이스에 가상 서브 인터페이스를 사용
+- R1(config)#interface FastEthernet 0/1
+- R1(config-interface)#no ip address
+- R1(config-interface)#no shutdown
+- R1(config)#interface FastEthernet 0/1.10
+- R1(config)#encapsulation dot1q 10 ->  Dot1q 태그를 단 트래픽이 인터페이스에 도달햇을 때 라우터는 태그가
+                                        Dot1q 10인 것을 보고 해당 서브 인터페이스로 트래픽을 보낸다.
+                                        그리고 서브 인터페이스에서 반대 방향인 스위치로 트래픽을 내려 보내는
+                                        경우에는 다시 Dot1q 10이라는 태그를 붙인다.
+- R1(config-interface)#ip address 10.10.10.1 255.255.255.0
+- R1(config)#interface FastEthernet 0/1.20
+- R1(config)#encapsulation dot1q 20
+- R1(config-interface)#ip address 10.10.20.1 255.255.255.0
+- R1(config)#ip route 0.0.0.0 0.0.0.0 203.0.113.2
+
+- SW1(config)#interface FastEthernet 0/1
+- SW1(config-if)#switchport trunk encap dot1q
+- SW1(config-if)#switchport mode trunk -> 스위치가 트래픽을 라우터로 보낼때마다 트래픽에 Dot1q 태그를 붙인다
+                                          라우터의 알맞는 서브 인터페이스로 전송 
+
+- 하지만 라우팅되는 트래픽은 라우터를 향해 물리적 이더넷 케이블을 따라 위 아래로 이동해야 한다.
+- 이 방법으로는 다수의 VLAN으로 향하는 트래픽이 동일한 케이블을 사용하게 된다.
+- 그래서 개별 인터페이스를 사용하는 위의 방법보다 대역폭 경쟁이 더욱 심해진다.
+
+
+- Layer 3 Switch
+- SVI ( Switch Virtual Interface ) 스위치 가상 인터페이스 사용
+- 가상 인터페이스는 PC의 기본 게이트웨이 역할
+
+- 스위치 백플레인
+- 내부 VLAN 간의 트래픽이 있을 때마다 스위치에서 라우팅된다. -> 라우터로 전송되지 않는다.
+
+- SW1(config)#ip routing -> 서로 다른 IP 서브넷 간의 라우팅을 허용
+- SW1(config)#interface vlan 10
+- SW1(config-if)#ip address 10.10.10.1 255.255.255.0
+- SW1(config)#interface vlan 20
+- SW1(config-if)#ip address 10.10.20.1 255.255.255.0
+
+- WAN 라우팅 구성
+
+- 3계층 인터페이스 : 해당 인터페이스에 IP 주소가 할당된다는 것
+- SW1(config)#interface FastEthernet 0/1
+- SW1(config-if)#no switchport -> 그 인터페이스 ip 주소를 설정할 수 있다.
+- SW1(config-if)#ip address 10.10.100.1 255.255.255.0
+- SW1(config)#ip route 0.0.0.0 0.0.0.0 10.10.100.2
+
+- R1(config)#interface FastEthernet 0/1
+- R1(config-interface)#ip address 10.10.100.2 255.255.255.0
+- R1(config)#interfacec FastEthernet 0/2
+- R1(config-interface)#ip address 203.0.113.1 255.255.255.0
+- R1(config)#ip route 0.0.0.0 0.0.0.0 203.0.113.2
+- R1(config)#ip route 10.10.0.0 255.255.0.0 10.10.110.1 -> 내부 LAN 트래픽을 위한 경로

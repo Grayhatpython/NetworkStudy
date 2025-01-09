@@ -1,0 +1,142 @@
+
+- 네트워크 다중화 ( Network Redundancy )
+- Layer 3 Configuration
+- 다중화 지점은 단일 장애 지점을 제거하기 위해 사용
+- 단일 장치의 연결이 귾어지는 경우, 이를 대체할 장치를 미리 준비
+- 정적 경로로 백업 경로를 구성
+
+- FHRP ( First-hop redundancy protocol )
+- 기본 게이트웨이 라우터 둘 사이에서 합의된 가상의 IP 주소를 가진다
+- 다중 라우터에서 FHRP를 활성화한 후 서로 대화해 어떤 주소를 가상 ip주소로 사용할 지 협의한다.
+- 또한 관련 사상 MAC 주소도 있으며 라우터들은 특정 IP 및 MAC 주소에 대해 
+- 어떤 라우터가 회신을 할지에 대해 협상을 하게 된다.
+- PC가 한 라우터의 인터페이스 주소를 기본 게이트웨이로 사용하는게 아니라 가상 IP 주소를 사용한다
+- 그 상황에 PC의 기본 게이트웨이를 사용하고 있는 라우터가 꺼진다면 대체 라우터에서는 이를 감지해
+- 자동적으로 가상 IP 주소로 대체할 겁니다.
+- 따라서 PC의 기본 게이트웨이 주소는 변하지 않고 자동적으로 대체 라우터를 사용하게 된다.
+
+- HSRP ( Hot Standby Router Protocol )
+- Cisco 전용이며 활성/대기 ( active/standby ) 쌍으로 배포
+- 하나가 active 중이며 다른 하나는 대기중이다.
+- 즉, 한 라우터에서 모든 트래픽이 전송되고 그 라우터에서 장애가 발생할 경우 대기라우터로 대체된다.
+- 활성 라우터는 가상 IP 및 MAC 주소를 소유하고 있으며 PC에서 들어오는 ARP 요청에 응답한다.
+- 가상 IP 주소에 대한 모든 트래픽은 활성 라우터를 거치게 된다
+- 라우터는 HSRP 인터페이스를 통해 생존을 확인하기 위한 서로에게 Hello 메세지를 보낸다.
+- 대기 라우터가 활성 라우터로부터 Hello 메세지를 받지 못하면 이는 라우터가 꺼졋음을 인식하고
+- 새 활성 라우터로 전환되어 가상 IP 및 MAC 주소의 소유권을 인계받아 PC의 ARP에 응답한다.
+
+- R1(config)#interface g0/1
+- R1(config-if)#ip address 10.10.10.2 255.255.255.0
+- R1(config-if)#no shutdown
+- R1(config-if)#standby 1 ip 10.10.10.1
+
+- R1(config)#interface g0/1
+- R1(config-if)#ip address 10.10.10.3 255.255.255.0
+- R1(config-if)#no shutdown
+- R1(config-if)#standby 1 ip 10.10.10.1
+
+- 물리적 ip 주소는 다르나 standby ip 주소는 같다
+
+- show standby
+- R1
+- Virtual IP address is 10.10.10.1
+- Active router is local
+- Standby router is 10.10.10.3
+
+- 우선순위와 선점 ( Priority and Pre-emption )
+- 우선순위를 지정하여 어느 라우터가 활성 상태가 될지를 선택할 수 있다.
+- 기본값은 100이고, 똑같을 경우 가장 높은 IP 주소가 승리한다.
+- 장애가 있는 라우터에서 선점이 활성화 되어 있으면 대체 라우터가 활성화되고
+- 장애가 회복되면 다시 장애가 있던 라우터가 활성화 상태로 된다.
+- 만약 장애가 있던 라우터가 자주 장애가 발생하면 계속적으로 짧은 중단이 발생해 안정적이지 않다
+
+- R1(config)#interface g0/1
+- R1(config-if)#ip address 10.10.10.2 255.255.255.0
+- R1(config-if)#no shutdown
+- R1(config-if)#standby 1 ip 10.10.10.1
+- R1(config-if)#standby 1 priority 110
+- R1(config-if)#standby 1 preempt
+
+- R2(config)#interface g0/1
+- R2(config-if)#ip address 10.10.10.3 255.255.255.0
+- R2(config-if)#no shutdown
+- R2(config-if)#standby 1 ip 10.10.10.1
+- R2(config-if)#standby 1 priority 90
+
+- Version
+- 기본은 Version 1이다
+- 두 라우터 모두 버전이 같아야 한다.
+
+- R1(config-if)#standby version 2
+- show standby
+
+- 로드 밸런싱
+- 동일한 IP 서브넷에 대해 두 개의 다른 HSRP 그룹을 구성
+- 서로 다른 IP 주소로 두 개의 다른 HSRP 그룹을 구성
+
+- R1(config)#interface g0/1
+- R1(config-if)#ip address 10.10.10.2 255.255.255.0
+- R1(config-if)#no shutdown
+
+- R1(config-if)#standby 1 ip 10.10.10.1
+- R1(config-if)#standby 1 priority 110
+- R1(config-if)#standby 1 preempt
+
+- R1(config-if)#standby 2 ip 10.10.10.254
+- R1(config-if)#standby 2 priority 90
+
+- R2(config)#interface g0/1
+- R2(config-if)#ip address 10.10.10.3 255.255.255.0
+- R2(config-if)#no shutdown
+
+- R2(config-if)#standby 1 ip 10.10.10.1
+- R2(config-if)#standby 1 priority 90
+
+- R2(config-if)#standby 2 ip 10.10.10.254
+- R2(config-if)#standby 2 priority 110
+- R2(config-if)#standby 2 preempt
+
+- R1은 HSRP Active 10.10.10.1
+- R2는 HSRP Active 10.10.10.254
+- PC 절반은 10.10.10.1을 기본 게이트웨이로 사용하도록 구성
+- 나머지 절반은 10.10.10.254은 기본 게이트웨이로 사용하도록 구성
+- 두 개의 다른 라우터를 통해 트래픽을 부하 분산할 수 있는 방법이다.
+
+- R1(config)#interface g0/1
+- R1(config-if)#ip address 10.10.10.2 255.255.255.0
+- R1(config-if)#no shutdown
+- R1(config-if)#standby 1 ip 10.10.10.1
+- R1(config-if)#standby 1 priority 110
+- R1(config-if)#standby 1 preempt
+
+- R1(config)#interface g0/2
+- R1(config-if)#ip address 10.10.20.2 255.255.255.0
+- R1(config-if)#no shutdown
+- R1(config-if)#standby 1 ip 10.10.20.1
+- R1(config-if)#standby 1 priority 90
+
+- R2(config)#interface g0/1
+- R2(config-if)#ip address 10.10.10.3 255.255.255.0
+- R2(config-if)#no shutdown
+- R2(config-if)#standby 1 ip 10.10.10.1
+- R2(config-if)#standby 1 priority 90
+
+- R2(config)#interface g0/2
+- R2(config-if)#ip address 10.10.20.3 255.255.255.0
+- R2(config-if)#no shutdown
+- R2(config-if)#standby 1 ip 10.10.20.1
+- R2(config-if)#standby 1 priority 110
+- R1(config-if)#standby 1 preempt
+
+- 동일한 IP 서브넷에서 나가는 트래픽의 부하 분산
+- 동일한 라우터 쌍을 통해 여러 서브넷이 지나가는 경우
+- 하나의 서브넷은 한 라우터를 통해 가고 다른 서브넷은 다른 라우터를 통해 가도록 하는 것
+
+- VRRP ( Virtual Router Redundancy Protocol )
+- Cisco 전용이며 활성/대기 ( active/standby ) 쌍으로 배포
+- Open Standard 이다
+
+- GLBP ( Gateway Load Balancing Protocol )
+- Cisco 전용
+- 다수의 라우터에 걸쳐 active/active load balancing 를 지원
+- 동일 IP 서브넷 상의 두 개 라우터에 부하를 분배하도록 할 수 있다.

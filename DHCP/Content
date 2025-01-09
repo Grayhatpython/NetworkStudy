@@ -1,0 +1,60 @@
+- DHCP ( Dynamic host configuration Protocol ) 
+- 클라이언트/서버 프로토콜로 호스트에 자동으로 IP 주소와 서브넷 마스크 및 기본 게이트웨이 등의 구성 정보를 제공
+- DHCP 클라이언트는 직접 구성을 통해서가 아니라 DHCP 서버로부터 IP 구성 정보를 얻는다.
+
+- DHCP 과정
+Client                      DHCP Server
+     [ DHCP Discover (Broadcast) ]  
+   ---------------------------------->
+   [ DHCP Offer (Unicast/Broadcast) ]
+   <----------------------------------
+      [ DHCP Request (Broadcast) ]
+   ---------------------------------->
+    [ DHCP Ack (Unicast/Broadcast) ]
+   <----------------------------------
+
+- DHCP Client 
+- 데스트콥 PC 및 노트북 등
+- 일반적인 데스크탑 PC에서는 네트워크 내의 다른 내부 호스트 혹은 인터넷으로 나가는 외부 연결은 가능하지만
+- 내부로 들어오는 직접 연결은 차단합니다. 외부 서비스를 실행할 일도 없고
+- 따라서 외부의 해당 호스트와 직접 연결될 일도 없기 때문이다
+- 따라서 고정 IP 주소는 필요없고 시간이 지나도 IP 주소가 바뀌어도 아무 문제 없다.
+- 하지만 라우터나 스위치 혹은 방화벽등의 서버 및 네트워크 기반 장치는 사용할 수 없다.
+- 이들은 네트워크를 실행하고 서비스를 작동하는 데에 필수적인 장치이기 때문에 이런 장치들의 IP 주소는 고정되어야
+- 한다. 들어오는 연결을 받을려면 주소가 동일하게 유지되어야 하므로
+
+- Cisco DHCP Server Configuration
+- R1(config)#ip dhcp excluded-address 10.10.10.1 10.10.10.10->제외할 IP 주소, 고정 IP 주소들을 부여할 장치
+- R1(config)#ip dhcp pool [10.10.10.0_Clients : name]
+- R1(dhcp-config)#network 10.10.10.0 255.255.255.0 -> 할당할 ip 주소의 범위 및 서브넷 마스크를 지정
+- R1(dhcp-config)#default-router 10.10.10.1 -> 클라이언트에게 기본 게이트웨이의 위치를 알려준다 
+- R1(dhcp-config)#dns-server 10.10.20.10 -> dns-server의 위치를 알려준다.
+
+- show ip dhcp pool
+- dhcp pool 구성 확인
+
+- show ip dhcp binding
+- 어떤 주소를 어떤 호스트에게 할당했는지 확인
+
+- External DHCP Server Configuration
+- PC가 스위치에 연결되어있고 스위치는 라우터에 라우터는 DHCP 외부 서버에 연결된 상태에서
+- PC의 전원이 켜질때 DHCP 브로드캐스트 메세지를 스위치로 보내면 스위치가 다시 브로드캐스트를 하는데 DHCP 서버  
+- 와 연결된 라우터에서는 이 메세지를 받아도 브로드캐스트를 하지 않는다. 
+- 라우터는 기본적으로 브로드캐스트 트래픽을 전송하지 않기 떄문이다.
+- 따라서 PC는 해당 DHCP 요청을 외부 DHCP 서버에 보내지 못하게 된다.
+- 이 문제를 해결하기 위해서 라우터에서 DHCP 요청을 전달하도록 구성해야 한다.
+- 이를 위해서 DHCP 요청을 수신하는 인터페이스 상에 구성을 해야한다.
+
+- R1(config)#interface f0/1
+- R1(config-if)#ip helper-address [IP Address] ex) 10.10.20.10
+
+- 그러면 라우터가 해당 인터페이스에서 DHCP 요청을 수신하면 이를 [IP Address]에 있는 DHCP 서버로 전달하고
+- 클라이언트는 IP 주소를 할당받게 된다
+
+- Configuring a Cisco Router as a DHCP Client
+- 서비스 제공자 라우터를 DHCP 서버로 구성
+- R1(config)#interface f0/0
+- R1(config-if)#ip address dhcp
+- R1(config-if)#no shutdown
+
+- #show dhcp lease
