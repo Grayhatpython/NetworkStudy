@@ -1,0 +1,314 @@
+- 라우팅 프로토콜 루프 방지 메커니즘과 IP 헤더의 TTL 필드가 실제로3계층에서 트래픽이 루프를 도는 것을 방지
+
+
+- STP ( Spanning Tree Protocol )
+
+- 이더넷 경로 선정
+- 스위치의 MAC 주소표에 의해 통제
+
+- 2계층의 루프를 방지하기 위해
+- 잠재적인 루프를 감지하고/또는 루프를 끊기 위해 포트를 막는다.
+- 물리적으로 연결된 인터페이스를 비활성화 , 이용 가능한 대역폭의 양을 줄인다.
+- 장애 조치를 자동화 , 수렴 시간이 느리다
+
+- Bridge ( 브리지 )
+- 2계층 장치로 양측의 MAC 주소를 학습
+- 커다란 충돌 도메인을 두 개의 작은 충돌 도메인으로 나눈다.
+
+- 스위치는 온라인 상태가 되면 BPDU ( 브리지 프로토콜 데이터 유닛 )을 전송하며 
+- BPDU는 다른 스위치와 잠재적 루프를 감지하는데 사용
+- 스위치는 해당 포트가 루프가 없다는 것이 확실해질 떄까지 어떤 포트에서도 트래픽을 전달하지 않는다. 차단 상태
+- 루프가 없으면 포트는 전달 상태로 전환
+
+- BPDU는 스위치의 브리지 ID를 포함하고 있으며 이는 LAN에서 스위치를 고유하게 식별한다.
+- 브리지 ID는 스위치의 고유한 MAC 주소와 관리자가 정의한 브리지 우선순위 값으로 구성된다. 
+- 브리지 우선순위는 0~65535, 기본값은 32768
+
+- 루트 브리지
+- 스위치의 브리지 ID 값에 기반하여 단일 루트 브리지로 선출된다.
+- LAN에서 브리지 우선순위 값이 가장 낮은 스위치가 루트 브리지로 선호된다. 
+- 우선순위 값이 동일할 경우 MAC 주소가 가장 낮은 스위치가 선택된다.
+- 스위치들을 우트 브리지로 이어지는 루프 없는 포워딩 경로 트리를 구축한다.
+
+- 다른 스위치들은 루트 브리지에 도달하기 위한 가장 낮은 비용 경로를 탐지하고 
+- 그 경로들은 전달 상태로 전환될 것이다.
+- 비용 측면에서 스위치가 루트 브리지로의 최적 경로를 계산할 때 더 높은 대역폭의 링크가 선호
+
+- Short-Mode Cost or Long-Mode Cost
+- 스위치는 둘 중 하나를 실행하게 된다.
+- 현대적이고 더 세분화된 -> Long-Mode
+- Short-Mode 같은 경우 20Gbps 이상에서 cost=1로 다 동일하지만
+- Long-Mode는 그 이상의 대역폭도 지원된다.
+
+- Short-Mode -> 16bit value
+- Long-Mode -> 32bit value
+
+- default는 Short-Mode
+- show spanning-tree pathcost method 
+- 확인 
+- spanning-tree pathcost method long
+- 변경
+
+- 스위치들이 서로 연결되어 있을 때 BPDU를 서로에게 보내며 이들은 자신의 브리지 ID를 광고하며
+- 가장 좋은 브리지 ID를 가진 스위치가 루트 브리지로 선출된다
+- 그러면 다른 모든 스위치들은 루트 브리지로의 최적 경로를 계산하게 되며 이는 트래픽이 전달될 경로가 된다.
+- 스패닝 트리는 루트 브리지를 최상단에 두고 구축된다.
+- 모든 스위치는 루트 브리지로의 최적 경로, 즉 가장 낮은 비용 경로로 트래픽을 전달하며 
+- 루프를 형성할 가능성이 있는 높은 비용 경로는 차단한다.
+- 따라서 스위치들은 해당 루트 포트, 루트 브리지로의 최적 경로로만 트래픽을 전달하게 된다.
+- 모든 링크를 통해 루트 브리지에 도달하는 가장 낮은 STP 누적 비용이 스위치의 루트 경로로 선택되며
+- 루트 경로 비용은 특정 경로를 통해 루트 브리지에 도달하기 위한 스위치의 누적 비용이다.
+
+- 루트 브리지는 BPDU에 Cost 0을 광고한다.
+- 광고를 받은 스위치들은 그것이 가장 좋은 브리지 ID를 가지고 있기 때문에 루트 브리지임을 수용한다.
+- 그러면 모든 하위 스위치들은 BPDU가 수신된 링크의 비용을 추가하며 루트 브리지로의 비용을 계산하고
+- 가장 낮은 비용 경로가 선호된다.
+- 모든 스위치가 루트 포트를 결정하고 루트로 돌아가는 루트 경로를 결정하고 다른 모든 링크는 
+- 스패닝 트리 프로토콜에 의해 차단된다.
+
+- interface f0/2
+- spanning-tree cost 1
+- 인터페이스의 비용을 변경하여 스패닝 트리 경로를 조작할 수 있지만 일반적인 방법은 아니다.
+- 다른 방법이 있는데 실제로 루트 브리지의 위치를 조작하는 것이다.
+
+- 각 스위치는 스패닝 트리에서 단 하나의 루트 포트만 가지므로 트래픽을 전달하는 여러 포트를 
+- 스위치에서 가지지 않게 된다.
+- 트래픽은 루트 브리지로 가는 최적 경로인 하나의 루트 포트를 통해서만 전달된다.
+
+- 스패닝 트리는 부하 분산을 하지 않는다.
+- 스위치가 루트 브지리로 가는 여러 개의 동일 비용 경로를 가지고 있다면 
+- 가장 낮은 브리지 ID를 가진 이웃 스위치를 선택하게 되며 이는 단 하나의 경로가 된다.
+- 여로 포트에 동일 경로가 여러 개면 
+- 가장 낮은 브리지 ID를 가진 스위치로 가는 포트 ID가 가장 낮은 포트를 선택할 것이다.
+
+- 루트 포트 해당하는 링크의 반대편 인터페이스는 지정 포트이다
+- 루트 포트와 지정 포트가 가장 직접적인 경로에 있기 때문에 항상 포워딩 상태로 전환된다.
+
+- 남은 링크에서는 스위치들이 루트로의 가장 비용이 적은 경로를 결정한다.
+- 스위치가 루트로 가는 경로 비용이 가장 낮거나 브리지 ID가 가장 낮은 쪽이 지정 포트가 될것이다.
+
+- 루트 포트 또는 지정 포트 쌍으로 선택되지 않는 모든 포트는 잠재적으로 루프를 형성할 수 있으며
+- 이러한 포트는 차단 포트로 선택된다.
+
+- 스패닝 트리가 어떤 포트를 차단할지는 스위치가 더 나은 BPDU를 수신하는 비루트 포트를 차단하는 것
+- 차단된 링크의 한쪽만 차단한다.
+- BPDU는 지정 포트에서 계속해서 해당 링크로 전송되지만 차단 포트에서는 전송되지 않는다.
+- 차단 포트가 더 나은 BPDU를 수신하지 않으면 차단을 해제하고 지정 던달 포트로 전환된다.
+
+- 루트 브리지에 모든 포트는 지정 포트
+
+- 스패닝 트리 버전
+
+- 802.1D Spanning Tree Protocol (STP)
+- LAN의 다양한 VLAN에 대해 하나의 스패닝 트리를 사용하므로 모든 것에 대해 하나의 인스턴스만 사용
+- 인터페이스가 루프가 없음을 확인하고 포워딩 상태로 전환되는데 최대 50초
+- 부하 분산을 지원하지 않는다.
+
+- 802.1w Rapid Spanning Tree Protocol (RSTP)
+- LAN의 다양한 VLAN에 대해 하나의 스패닝 트리를 사용하므로 모든 것에 대해 하나의 인스턴스만 사용
+- 수렴 시간을 상당히 개선 -> 몇 초로 줄어듬 
+- 부하 분산을 지원하지 않는다.
+
+- 802.1s Multiple Spanning Tree Protocol (MSTP)
+- VLAN을 다양한 스패닝 트리 인스턴스로 그룹화하고 매핑할 수 있게 한다.
+- 수렴 시간을 상당히 개선 -> 몇 초로 줄어듬 
+- 부하 분산을 지원한다.
+
+- Cisco Versions
+- Per VLAN Spanning Tree Plus (PVST+)
+- 802.1D와 거이 같은 시기에 나왔으며 Cisco 개선 사항을 포함해서 나왔다.
+- 각 VLAN마다 별도의 스패닝 트리 인스턴스를 사용한다.
+- 다중 스패닝 트리와 마찬가지로 부하 분산을 할 수 있다.
+- 매우 긴 수렴 시간
+- Cisco 스위치의 기본
+
+- Rapid Per VLAN Spanning Tree Plus (RPVST+)
+- 802.1w와 거이 같은 시기에 나왔으며 Cisco 개선 사항을 포함해서 나왔다.
+- 각 VLAN마다 별도의 스패닝 트리 인스턴스를 사용한다.
+- 수렴 시간을 상당히 개선
+
+- MST에서는 VLAN을 그룹화 했다
+- PVST+와 Rapid PVST+에서는 VLAN을 그룹화할 수 없다.
+- 각각의 개별 VLAN에 대해 별도의 인스턴스를 가진다.
+- VLAN 수준에서 스패닝 트리 인스턴스를 계산해야 하기 떄문에 스위치에 약간 더 많은 부하를 준다.
+
+- spanning-tree mode ?
+- 스패닝 트리 버전을 구성하는 명령어
+
+- show spanning-tree summary
+- 스위치에서 실행중인 버전 확인
+
+-     802.1D STP                PVST+, RSTP, RPVST+, MSTP
+    Root(루트포트)                    Root(루트포트)
+   Designated(지정포트)             Designated(지정포트)
+    Blocked(차단포트)               Alternate(대체포트)
+
+
+- 스패닝 트리 프로토콜 검증
+- show spanning-tree vlan 1
+- vlan을 지정하지 않으면, 모든 다른 VLAN에 대한 스패닝 트리를 보여줄 것이다.
+- Root ID : 루트 브리지에 대한 정보
+- Bridge ID : 이 스위치에 대한 정보
+
+- 루트 ID 정보는 로컬 영역 네트워크의 모든 스위치에서 유사해야 한다.
+- 브리지 ID는 해당 개별 스위치의 MAC 주소를 지정합니다.
+
+- show mac address-table
+
+
+- 루트 브리지 조작
+- 루트 브리지를 코어 스위치 중 하나에 섫정
+- spanning-tree vlan 1 root primary
+- 루트 브리지가 되기를 원하는 스위치에서 
+- 서로 다른 VLAN에 대해 서로 다른 스위치가 루트 브리지가 될 수 있다.
+
+- spanning-tree vlan 1 root secondary 
+- 루트 브리지 다음 백업으로 설정하고 싶은 스위치
+
+- spanning-tree vlan 1 priority [number]
+- 수동 설정
+- 0 ~ 61440, 4096의 배수만 가능
+
+
+- 스패닝 트리와 HSRP 관계
+
+- R1(config)#interface g0/1.10
+- R1(config)#encap dot1q 10
+- R1(config-if)#ip address 10.10.10.2 255.255.255.0
+- R1(config-if)#no shutdown
+- R1(config-if)#standby 1 ip 10.10.10.1
+- R1(config-if)#standby 1 priority 110
+- R1(config-if)#standby 1 pre-empt
+
+- R1(config)#interface g0/1.20
+- R1(config)#encap dot1q 20
+- R1(config-if)#ip address 10.10.20.2 255.255.255.0
+- R1(config-if)#no shutdown
+- R1(config-if)#standby 1 ip 10.10.20.1
+- R1(config-if)#standby 1 priority 90 
+
+- CD1(config)#spanning-tree vlan 10 root primary
+- CD1(config)#spanning-tree vlan 20 root secondary
+
+- R1(config)#interface g0/1.10
+- R1(config)#encap dot1q 10
+- R1(config-if)#ip address 10.10.10.3 255.255.255.0
+- R1(config-if)#no shutdown
+- R1(config-if)#standby 1 ip 10.10.10.1
+- R1(config-if)#standby 1 priority 90 
+
+- R1(config)#interface g0/1.20
+- R1(config)#encap dot1q 20
+- R1(config-if)#ip address 10.10.20.3 255.255.255.0
+- R1(config-if)#no shutdown
+- R1(config-if)#standby 1 ip 10.10.20.1
+- R1(config-if)#standby 1 priority 110
+- R1(config-if)#standby 1 pre-empt
+
+- CD2(config)#spanning-tree vlan 20 root primary
+- CD2(config)#spanning-tree vlan 10 root secondary
+
+- Portfast
+- 스위치의 포트가 활성화되면 스패닝 트리는 기본적으로 해당 포트를 통해 루프가 형성되지 않도록 보장하고
+- 포워딩 상태로 전환하는데 30초가 걸린다.
+- 포트가 PC에 연결되어 있다면 이 포트는 결코 루프가 형성되지 않을 것이다
+- 하지만 PC가 실제로 네트워크에서 통신할 수 있도록 해당 포트가 포워딩을 시작하는데 30초 동안 기다리고 싶지 않다
+- 이것이 바로 포트 패스트가 있는 이유다
+- 루프를 절대 형성하지 않을 포트
+- 기본적으로 일반적인 엔드 호스트에 연결된 포르가 활성화되엇을 때 즉시 포워딩 상태로 전환할 수 있도록 
+- 포트패스트를 활성화 할수 있다
+
+- interface f0/10
+- spanning-tree portfast
+- 해당 인터페이스 포트패스트 활성화
+
+- spanning-tree protfast default
+- 모든 포트 포트패스트 설정
+
+- 트렁크 포트는 일반적으로 다른 스위치에 연결된다.
+- 이들을 통해 루프가 형성될 수 있으므로 포트패스트가 활성화되어서는 안된다.
+
+- 트렁크 포트에 포트패스트 구성
+- spanning-tree portfast trunk
+
+- BPDU Guard
+- 포트패스트로 된 포트도 여전히 루프를 방지하기 위해 스패닝 트리가 활성화 되어 있다.
+- 그런 포르패스트 포트로 인한 루프를 방지하기 위해
+- 포트패스트 포트에서 BPDU 가드를 활성화하여 방지할 수 있다.
+- 스위치는 항상 스패닝 트리 정보를 담은 BPDU를 전송하여 2계층 LAN에서 루프를 방지한다.
+- 포트패스트 포트에서 BPDU 가드를 활성화하면 해당 포트에서 BPDU가 수신될 경우
+- 그것이 엔드 호스트가 아닌 스위치가 연결된 것을 나타내므로 
+- 해당 포트는 오류 비활성화 상태가 되어 즉시 셧다운된다.
+
+- interface f0/10
+- spanning-tree portfast
+- spanning-tree bpduguard enable
+- 포트패스트 포트에는 bpduguard도 설정해주는 것이 좋다
+
+- spanning-tree portfast bpduguard default
+- 전역적으로 설정
+
+- 포트가 오류 비활성화되면 포트를 shutdown -> no shutdown 해야한다.
+- 그래서 오류 비활성화 복구를 구성하여 몇 초 후에 포트를 자동으로 서비스로 복귀할 수 있다.
+
+- errdisable recovery cause bpduguard
+- errdisable recovery interval 30
+- BPDU 가드 때문에 오류 비활성화 상태가 되었을 때 매 30초마다 다시 서비스로 복귀한다.
+- 권장하지는 않는다.
+- 스위치랑 연결햇을 경우 다시 서비스로 복귀해도 BPDU를 다시 전송해서 오류 비활성화 상태가 반복될것이다.
+
+- 루트 가드
+- 의도치 않은 스위치가 루트 브리지가 되는 것을 방지
+- 오래된 스위치가 있을 때 네트워크 중심이 되는 루트 브리지가 되는 것을 막을 수 있다.
+- 루트 가드가 활성화된 포틐가 현재 루트 브리지보다 우수한 BPDU를 수신하면
+- 해당 포트를 root-inconsistent(루트 불일치) 상태로 전환하여 해당 포트로는 트래픽이 전달되지 않는다.
+
+- interface fa0/2
+- spanning-tree guard root 
+
+- 포트패스트 엣지
+- BPDU를 수신하면 포트는 계속 활성 상태를 유지
+- 단지 포트패스트 포트가 되는 것을 중지
+
+- BPDU Filter
+- 엔드 호스트는 BPDU를 전송하지 않는다
+- 예상치 못한 BPDU를 감지
+- BPDU와는 다르게 오류 비활성화 하지는 않는다.
+
+- 글로벌 구성에서 활성화하면 포트패스트가 활성화된 인터페이스만 적용된다.
+- 초기 BPDU를 전송한 후 해당 포트에서 전송을 중지한다.
+- 포트에서 BPDU를 수신하면 포트패스트가 구성에서 제거되고 BPDU 필터링이 비활성화되며 일반 인터페이스처럼 작동
+- BPDU를 수신하면 일반 스패닝 트리 포트처럼 작동 -> 다양한 스패닝 트리 단계를 거치며 루프가 있는지 감지
+- 포트패스트 엣지 유사
+
+- 인터페이스 레벨에서는 BPDU 필터를 활성화하면 스위치는 해당 포트에서 BPDU를 전송하지 않으며
+- 들어오는 BPDU를 무시 -> 스패닝 트리를 비활성화
+
+- 스패닝 트리 문제를 일으키는 구형 스위치에 단일 하향 연결이 잇는 경우 사용
+
+- spanning-tree portfast bpdufilter default
+
+- interface g0/10
+- spanning-tree bpdufilter enable
+
+- 루프 가드
+- PVST+, RPVST+, MST
+- 단방향 링크를 방지
+- 케이블에서 가는 방향과 오는 방향 중에 한방향에 문제가 생겼을 때
+
+- spanning-tree loopguard default
+
+- interface g0/0
+- spanning-tree guard loop
+
+- show spanning-tree summary
+- show spanning-tree interface g0/0 detail
+
+- UDLD
+- 2계층 프로토콜
+- 기본적으로 양방향으로 keepalive를 보내고 둘 다 도착하지 않으면 UDLD는 단방향 링크 문제가 있다고 인식
+
+- 컨버전스
+- 스패닝 트리가 토폴로지 전반에 걸쳐 루프 없는 경로를 구축하는 방법과 해당 토폴로지에서 링크 장애가 발생했을 때
+- 복구하는 방법
+
