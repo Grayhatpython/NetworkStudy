@@ -57,4 +57,4 @@ Client                      DHCP Server
 - R1(config-if)#ip address dhcp
 - R1(config-if)#no shutdown
 
-- #show dhcp lease
+- show dhcp lease
