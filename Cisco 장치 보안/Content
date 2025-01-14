@@ -1,0 +1,227 @@
+- Line Level Security
+
+- Basic Line Level Security
+- 최소한의 비밀번호 보안은 세 단계를 통해 정적이고 로컬에서 지정된 비밀번호 사용을하도록 구성하는 방법
+- 로컬을 사용할 수 있다 -> 라우터나 스위치 자체에 구성되었으며 바뀌지 않는 정적 비밀번호를 의미
+- 3가지 단계에서 바꿀 수 있다
+- Console line : 콘솔 케이블을 통해 연결 시, 관리자 모드에 액세스 하면 수정이 가능하다
+- Virtual terminal VTY line : 텔넷이나 SSH을 통해 원격 연결을 통해 장치에 액세스하면 수정이 가능 
+- Privileged Exec Mode : enable 관리자 모드에서 비밀번호를 설정
+- 이 3가지 레벨은 독립적으로나 서로 조합하여 사용할 수 있다 -> 동일하거나 다른 비밀번호를 사용할 수 있다
+
+- Basic Console Security
+- line console 0
+- password [value]
+- login -> 누군가 해당 콘솔에 연결해서 명령어 라인에 액세스하려 할 때마다 콘솔 라인에 구성된 비밀번호를 입력해야 하도록 만들기 위해
+- 한 번에 한 사람만이 해당 콘솔에 연결될 수 있다
+
+- Basic Telnet Security
+- 관리자는 텔넷을 사용하는 IP 원격 연결을 통해 라우터나 스위치의 명령어 라인으로 접속할 수 있다.
+- 라우터나 스위치는 기본적으로 텔넷을 통한 세션을 승인하지 않는다 -> 따로 설정이 필요하다
+- VTY라인에서 IP 주소와 함계 텔넷 액세스를 활성화해야한다
+- VTY라인은 텔넷과 ssh 연결을 위해 사용되는 가상 터미널이다
+
+- 가장 먼저 할 일은 IP 주소를 구성하는 것
+- 제2계층 스위치는 IP 라우팅 인식형이 아니다.
+- 하지만 텔넷이나 SSH에 접속하기 위한 관리용 단일 IP 주소를 지원한다
+- 다른 IP 서브넷에 연결되기를 원하신다면 기본 게이트웨이 또한 구성되어야 할 것이다
+
+- SVI ( Switch Virtual Interface )
+- interface vlan 1
+- ip address [192.168.0.10] [255.255.255.0]
+- no shutdown
+- exit
+- ip default-gateway [192.168.0.1]
+
+- Basic Telnet Security
+- 텔넷과 ssh에서는 다수의 관리자가 동시에 장치에서 작업할 수 있다.
+
+- line vty 0 15
+- password [value]
+- login
+
+- exec-timeout 5 30
+- 기본적으로 10분간 라우터나 스위치에 어떤 명령어도 입력하지 않으면 로그아웃된다
+- no exec-timeout or exec-timeout 0
+- 자동 종료가 비활성화되며 로그인 상태가 무한 유지
+
+- Securing VTY Lines with Access Lists
+- access-list 1 permit host 10.0.0.10
+- line vty 0 15
+- password [value]
+- access-class 1 in
+- 관리자 워크스테이션에 로그인하는 경우에 한하여 텔넷과 ssh 액세스를 제한할 수 있다
+
+- Basic Privileged Exec Security
+- enable password [value]
+- 비밀번호가 텍스트 형대로 보인다.
+
+- enable secret [value]
+
+- show run을 통해 활성화 비밀번호가 그대로 보이면 라인 수준의 비밀번호들도 기본적으로 그대로 보이게 된다
+- service password-encryption
+- 모든 비밀번호가 암호화된다
+
+- Username Level Security
+- 각 관리자마다 사용자 명과 비밀번호를 다르게 구성해야 한다
+
+- username [adminname1] secret [password1]
+- username [adminname2] secret [password2]
+- line console 0
+- login local ( use local usernames ) : 콘솔에 비밀번호를 구성했더라도 콘솔 비밀번호는 무력화된다
+- line vty 0 15
+- login local
+- 관리자가 로그인을 하려면 사용자 명과 비밀번호가 필요하다
+
+- Privilege Levels
+- 라우터와 스위치에는 16단계의 관리자 레벨이 있다 0 - 15
+- 특정 관리자 레벨에 사용자 명을 할당해줄 수 있다
+- 기본 레벨은 1이다
+- IOS의 각 명령에 관리자 레벨을 지정할 수 있는데 명령을 실행하기 위해서 관리자는 지정된 것보다 높거나 같은 관리자 레벨에 로그인해야한다.
+- 보통 3개의 레벨만 사용하는데, zero, user, Privileged 대부분의 경우 모든 명령어는 이 3개의 레벨에 속해있다
+- zero level에서는 5개의 명령어만 사용 가능 ( logout, enable, disable, help, exit )
+- user level (level1) 제한적인 읽기 전용 권한을 가진다 
+- Privileged level (level15) 관리자 레벨은 라우터를 완전히 제어, enable 명령어를 사용해 레벨 15로 접속하면 모든 명령어를 사용할 수 있다
+- username [adminname2] privilege 15 secret [password2] : 바로 레벨15로 접속
+- show privilege
+
+- privilege exec level [level] show running-config
+- 관리자 레벨 [level]에서 사용할 명령어를 지정
+
+- 특정 관리자 레벨에 직접 비밀번호를 설정
+- enable secret [secret1]
+- 관리자 레벨을 지정하지 않으면 기본으로 관리자 레벨 15 비밀번호가 설정된다
+- enable secret level 5 [secret2]
+- 레벨 5로 접속하게 된다
+
+- SSH
+- 텔넷에서는 문제가 하나 있는데 스위치나 라우터 간의 트래픽이 글자 그대로 보인다는 것이다
+- 누군가 스니핑을 할 경우 장치에 보내는 명령어나 심지어 비밀번호도 알수 있게 된다
+- 라우터나 스위치 명령어 라인에 접근할 수 있게 한다
+- 모든 트래픽을 암호화한다
+
+- ssh을 활성화하기 위해서는 트래픽을 암호화해야해서 디지털 인증서를 사용한다
+- ip domain-name test.com
+- crypto key generate rsa
+- bit 설정 ssh의 경우에는 768부터 허용
+- 라우터나 스위치의 호스트 이름(Hostname)과 도메인 이름을 조합하여 디바이스의 Fully Qualified Domain Name(FQDN)을 생성하는 데 사용됩니다. FQDN은 SSH를 위한 RSA 키 생성 시 필요
+
+- username [name] secret [password]
+- line vty 0 15
+- transport input ssh- login local : 전송 입력값은 기본적으로 텔넷과 ssh을 다 허용, 여기선 ssh만 허용
+- exit
+- ip ssh version 2
+- ssh에서는 라인 레벨의 비밀번호를 사용할 수 없다. 꼭 사용자 명을 사용해야 한다
+
+- ssh -l [username] [ip address]
+
+- 위의 과정은 비밀번호를 바꾸거나 수정하는 과정을 모든 장치에서 해야 한다
+- 그래서 새로운 관리자가 들어오거나 기존 관리자가 나가거나 할 떄 수많은 라우터와 스위치에 전부 접속해 사용자 명을 추가하거나 변경해야한다
+- 각 장치에서 보안 단계의 구성을 전부 새로 바꾸는 것 보다는 외부 AAA 서버를 사용하는 편이 낫다 -> 보안을 중앙화
+- 모든 보안 구성과 사용자명 비밀번화 권한검즈으이 세부사항들이 AAA 서버에서 구성되고 라우터와 스위치도 이 서버를 향한다
+- 따라서 라우터나 스위치에 로그인하려면 AAA 서버에서 권한이 검증 되엇는지를 확인하게 된다.
+- AAA 서버가 다운 될 경우를 대비해 이중화를 한다
+
+- AAA ( Authentication, Authorization & Accounting )
+- 인증 : 본인을 확인하는 과정
+- 권한검증 : 특정 유저에게 권한이 있는지 , 특정 명령어를 사용할 수 있는지
+- 계정관리 : 유저가 수행하는 옵션을 추적 , 관리자가 어떤 명령어를 썻는지 추적할 수도 있다
+
+- 사용되는 프로토콜은 RADIUS, TACACS+
+- RADIUS는 주로 VPN과 같은 유저 레벨의 서비스에 사용
+- TACACS+는 보통 관리자가 Cisco 장치에 접속할 떄 사용
+
+
+- AAA 구성
+
+- old radius 구성
+- username [backupadmin] secret [password1] : AAA 서버와 연결이 끊기면 사용할 수 있는 백업 유저
+- aaa new-model : AAA를 활성화
+- radius-server host 10.10.10.10 key [key1]
+- radius-server host 10.10.10.11 key [key2]
+- aaa group server radius [group-name] ( optional )
+- server 10.10.10.10
+- server 10.10.10.11
+- aaa authentication login default group radius local : 이 장치에 구성한 모든 radius 서버들을 사용할 수 있다
+- aaa authentication login default group [group-name] local : 서버 그룹을 지정했다면 
+- radius서버를 우선적으로 사용하고 서버가 안될 경우 로컬 사용자 명으로 대체한다
+
+- new radius 구성
+- aaa new-model
+- radius server [server1-name]
+- address ipv4 10.10.10.10
+- key [key1] 특정 라우터나 스위치의 암호
+
+- radius server [server2-name]
+- address ipv4 10.10.10.11
+- key [key2]
+
+- aaa group server radius [group-name]
+- server name [server1-name]
+- server name [server2-name]
+
+- aaa authentication login defualt group [group-name] local
+
+- old TACACS+ 구성
+- username [backupadmin] secret [password1] 
+- aaa new-model : AAA를 활성화
+- tacacs-server host 10.10.10.10 key [key1]
+- tacacs-server host 10.10.10.11 key [key2]
+- aaa group server tacacs+ [group-name] ( optional )
+- server 10.10.10.10
+- server 10.10.10.11
+- aaa authentication login default group [group-name] local : 서버 그룹을 지정했다면 
+
+
+
+- new TACACS+ 구성
+- username [backupadmin] secret [password1] 
+
+- aaa new-model
+- tacacs server [server1-name]
+- address ipv4 10.10.10.10
+- key [key1] 특정 라우터나 스위치의 암호
+
+- tacacs server [server2-name]
+- address ipv4 10.10.10.11
+- key [key2]
+
+- aaa group server tacacs+ [group-name] ( optional )
+- server name [server1-name]
+- server name [server2-name]
+
+- aaa authentication login defualt group [group-name] local
+
+
+
+- 글로벌 구성에서의 보안 명령어
+- banner logn "text"
+- 유저가 로그인을 시도하면 비밀번호를 입력하기 전에 이 text 문구를 본다
+- banner exec "text"
+- 로그인 직후 text 문구를 본다
+
+- 사용하지 않는 서비스의 비활성화되며
+- no ip http server
+- no cdp run
+
+- time synchronisation
+- 모든 장치를 같은 시간대로 동기화해야한다
+- 로그를 실제 일어난 정확한 시간으로 기록
+- ntp ( network time protocol)을 사용
+- 모든 서버와 인프라 장치들의 시간을 ntp 서버를 통해 동기화
+- Cisco 라우터가 ntp 서버와 클라이언트 모두 된다
+
+- 라우터에 시간대를 설정한다. 뉴욕이라면 뉴욕시간대에 시드니라면 시드니 시간대에
+- clock timezone PST -8
+- 태평양 표준시 , 미국은 협정 세계시보다 8시간 늦다
+
+- ntp server 10.0.1.100
+- ntp 클라이언트로 구성하려면 ntp server를 입력하면 된다. 그 옆에 서버의 ip 주소를 넣으면 된다
+
+- ntp master 
+- ntp 서버를 구성
+
+- show clock
+
+- show ntp status
+- clock is synchronized
