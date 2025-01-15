@@ -1,0 +1,145 @@
+- Syslog
+- 메세지 로깅을 위한 표준 형식
+- 장치에 어떤 일이 발생하면 Syslog 메세지가 생성된다 ( Ex. 인터페이스 활성화, OSPF 인접성 형성 )
+- 정해진 형식이 있으며 모든 공급업체가 준수하는 업계 표준이다
+
+- Message Format
+
+- EX) *   Oct 3 00::44:12.627:    %LINK   -5-    CHANGED:      Interface FastEthernet0/0, changed state to administratively down
+- seq no ( optional ) : 시퀀스 넘버
+- times stamp : 이벤트 시간
+- Facility : 이벤트를 생성한 출처
+- severity : 0 - 7 까지 레벨로 나뉘며 0이 가장 심각한 상태
+- MENMONIC : 발생한 이벤트에 대한 짧은 설명
+- Description : 더 자세한 설명
+
+- Severity Level
+- 모든 공급어체에서 동일하게 사용하는 표준
+- 0 ( Emergency ) : 시스템을 사용할 수 없는 레벨
+- 1 ( Alert ) : 손상된 시스템 데이터베이스와 같이 즉각적인 조치가 필요한 상황
+- 2 ( Citical ) : 하드 장치 오류와 같은 심각한 상태
+- 3 ( Error )  : 
+- 4 ( Warning ) : 심각한 문제일 수 있으므로 반드시 확인이 필요한 상태
+- 5 ( Notice ) : 정상적인 상태이지만 여전히 확인 필요한 상황
+- 6 ( Informational ) : 정보용 메세지, 정보전달 목적
+- 7 ( Debug ) : 정보가 포함된 메세지 , 프로그램 디버깅 메세지
+
+- 라우터나 스위치에 다양한 위치에 저장될 수 있다.
+- console line
+- VTY  Terminal lines
+- The logging buffer : show loggin
+- External Syslog servers
+
+- syslog는 기본적으로 콘솔 라인에는 활성화되어 있지만 터미널 라인에서는 활성화되어 있지 않다
+- 로깅 위치는 원하는 곳으로 설정할 수 있으며 몇 개든 설정가능
+- 설정한 레벨과 같거나 더 높은 이벤트가 기록된다 ( 3 -> 0 1 2 3 )
+
+- no logging console
+- 기본적으로 활성화되어 있는 로깅 콘솔 비활성화
+- logging monitor [level]
+- ssh와 telnet을 위한 vty 라인에 로깅
+- logging buffered debugging[level]
+- RAM 버퍼에 기록된다 
+
+- 외부 syslog 서버에도 로그를 저장할 수 있다.
+- 이벤트 보고를 중앙 집중화
+- logging 10.0.0.100
+- logging trap debugging[level]
+
+- SIEM ( Security Information and Event Management )
+- 보안 정보 및 이벤트 관리
+- 이벤트 보고를 중앙 집중화할 수 있고 syslog 서버보다 더 비싸지만 고급 보고 기능 및 멋진 그래프를 제공하며 이벤트 상관간계도 지정할 수 있다.
+
+- show logging
+- 로그 구성 및 버퍼에 있는 이벤트를 확인
+
+- logging Synchronous
+- 명령줄에 기록되는 모든 syslog 메세지는 현재 입력 중인 명령 중간에 출력된다.
+- 라인 레벨에서 수행되므로 콘솔 라인과 vty 라인에서 구성할 수 있다.
+- 로깅 에빈트가 발생해도 입력 중이었던 명령이 다음줄로 구성된다.
+
+- show 정적 
+- 엔터를 누른 순간
+- debug 동적 
+- 실시간 , 많은 디버그 출력에 대한 오버헤드 발생 , 
+- 기본적으로 콘솔 라인과 버퍼에 기록
+- 콘솔 라인을 통해 연결된 상태에서 debug을 수행하는 경우 결과가 출력되는 것을 볼 수 있다. or show logging
+- 그러나 텔넷 또는 ssh 세션을 통해 로그인한 경우 debug 명령어 후 이벤트가 발생하더라도 명령줄에서 볼 수 없다
+- debug 결과를 출력되는 것을 보려면 terminal monitor을 입력해야 한다.
+
+- SNMP ( Simple Network Management Protocol )
+- 네트워크 모니터링을 위한 개병형 표준 프로토콜로 라우터와 스위치, 서버 뿐만 아니라 거의 모든 공급업체의 모든 장치에 사용되고 있다.
+- SNMP Manager ( SNMP Server or NMS ) SNMP 소프트웨어인 SNMP 에이전트로부터 정보를 수집하고 정리할 수 있으며 라우터 및 스위치 같은 관리 장치에서 실행된다.
+- SNMP Manager는 'Get' 명령을 사용하여 장치에서 정보를 가져오거나 'Trap'을 사용하여 장치에서 서버로 정보를 푸시할 수 있다.
+- SNMP Manager는 장치에서 트래픽 통계를 얻기 위해 쿼리하거나 장치가 HSRP 상태 변경을 보고할 수 있다.
+
+- SNMP Manager 관리 시스템의 데이터 변수 예를 들어 인터페이스 상태 OSPF 상태 등의 데이터 변수는  MIB ( Management Information Base ) 즉, 관리 정보 기반으로 구성되며
+- 이것은 다양한 장치에서 수집한 정보에 대한 데이터베이스
+- SNMP Manager와 agent가 MIB를 공유해야 보고할 수 있는 변수를 알 수 있다.
+
+- SNMPv1 : 매니저와 에이전트 간에 인증을 위해 일반 텍스트 커뮤니티 문자열을 사용, 인증을 암호화하지 않아 트래픽을 스니핑하는 경우 누구나 읽을 수 있다 .
+- SNMPv2 : 인증부분은 v1과 같으며 추가로 대량 검색을 지원 ( 여러 정보에 대한 요청을 동시에 보낼 수 있다. )
+- SNMPv3 : 사용자 이름과 비밀번호를 사용하여 강력한 인증 및 암호화를 지원 , 모든 장치에서 지원되는 것은 아니다.
+
+- SNMPv1,2는 일반적으로 사용되는 사용자 이름과 암호가 아닌 커뮤니티 문자열을 사용 
+- 커뮤니티 문자열은 SNMP Manager와 agent를 서로 인증하는데 사용
+- 에이전트와 매니저 양쪽에 동일한 커뮤니티 문자열 값을 설정해야 서로를 인증할 수 있다.
+- 읽기 전용 및 읽기/쓰기 커뮤니티 문자열이 있는데 읽기 전용은 매니저가 정보를 읽는 데 사용되고 읽기/쓰기 커뮤니티는 정보를 설정하려는 경우 사용
+
+- snmp-server contact neil@flackbox.com
+- snmp-server location Flackbox Lab
+
+- snmp-server community Flackbox1 ro
+- snmp-server community Flackbox2 rw
+
+- snmp-server host 10.0.0.100 Flackbox1
+- snmp-server enable traps config
+
+- 기본 ro 문자열로 public rw 문자열로 private를 설정되어 있어서 설정을 변경하는 것이 좋다
+
+- SNMPv3
+- 보안 모델로 유저와 그룹을 사용
+- 라우터나 스위치에 유저를 구성하고 NMS 서버에도 일치하는 유저를 구성
+- 그룹이 있어서 대부분의 설정은 그룹 단계에서 구성
+- 해당 설정이 유저에게 적용되는데 실제로 어떤 그룹의 유저인지에 따라 결정된다.
+
+- Security Level
+- 3가지 보안 레벨
+- noAuthnoPriv 
+- 인증 및 개인 정보 보호가 없다, 인증비밀번호가 교환되지 않아 에이전트와 서버 간 통신이 암호화 되지 않는다.
+- AuthNoPriv
+- 비밀번호 인증을 사용, 장치 간 통신에 더 이상 암호화를 사용하지 않는다.
+- AuthPriv
+- 비밀번호 인증을 사용, 에이전트와 서버 간의 통신에도 마찬가지로 암호화가 이루어진다
+
+- snmp-server group Flackbox-group v3 ?[security level]
+- ? : noauth, auth, priv
+- snmp-server group Flackbox-group v3 priv ?
+- ? : access, context, match, notify , read , write
+- access 
+- 일반 액세스나 액세스 목록을 구성하는 키워드 , NMS 서버의 IP 주소를 지정하는 라우터나 스위치에서 구성할 수 있다.
+- 그 후 SNMP 설정을 구성할 떄 해당 액세스 목록을 참조하여 접근을 제한할 수 있다.
+- context
+- 스위치에서 사용하며, SNMP을 통해 접근 가능한 VLAN을 지정
+
+- view ( notify , read , write )
+- NAM 서버에 접근하는 정보를 제한할떄 사용
+- 기본적으로 NMS 서버는 해당 장치에서 모든 SNMP 정보를 얻을 수 있다.
+- 특정한 정보만 가져가도록 제한하고 싶을 떄 read view를 사용
+- write view를 지정하지 않으면 MIB 객체에 쓰기를 못한다
+- 그룹에 통보를 전할 떄 쓰며 여기서 통보를 Trap이라고 한다. 아무것도 지정하지 않으면 기본적으로 비활성화 
+
+
+- snmp-server group Flackbox-group v3 priv
+- 기본설정은 그룹의 NMS 서버는 장치에 대해서 전체적인 읽기 전용 접근 권한을 가진다
+
+- User
+- snmp-server user Flackbox-user Flackbox-group v3 auth ?1 AUTHPASSWORD priv ?2 ?3 PRIVPASSWORD
+- 인증과 개인 정보 보호를 구분했다
+- 인증과 개인 정보 보호 구성 역시 별개다. 인증에 대한 구성 auth을 마치고 개인 정보 보호 priv를 구성한다
+
+- ?1 : md5, sha 
+- 사용할 인증 알고리즘
+
+- ?2 : 3des, aes, des
+- ?3 : 128, 192, 256 -> 암호화 비트 지정
