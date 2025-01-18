@@ -64,3 +64,4 @@
 - default-information originate
 -- 기본 정적 경로가 RIP에 주입되어 다른 라우터들에게 통보하게 되고 이 라우터들은 내부 RIP 라우터들에게 이 정보를 통보
 
+
