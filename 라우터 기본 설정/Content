@@ -1,0 +1,103 @@
+- IOS
+- 시스코 장비에서 사용하는 운영체제
+
+- Would you like to enter the initial configuration dialog? [yes/no] 
+- 셋업 모드로 들어가기 위한 질문이다.
+- 아래와 같은 경우 발생한다.
+
+- 공장 출하 시
+- 관리자 모드에서 setup 명령어 사용 시
+- 설정 레지스터의 끝에서 두 번째 값이 0X2142처럼 4일 떄 
+- ( 설정 레지스터는 라우터의 콘솔 포트 속도 등을 제어하는 값들 )
+- 설정 파일을 삭제한 후 재부팅할 때
+
+- no라고 입력해서 빠져나오면 된다.
+
+- Router>
+- 이 모드를 이용자 모드라고 한다.
+- 제한된 명령어만 사용할 수 있는데 명령어를 확인할려면 ? 를 입력하면 된다.
+
+- enable 
+- 위 명령어를 입력하면 아래와 같이 관리자 모드로 들어간다.
+- Router#
+- 해당 장비에 대한 모든 작업을 할 수 있다.
+
+- Router>enable                     -> 이용자 모드
+- Router#configure terminal         -> 관리자 모드
+- Router(config)#interface f0/0     -> 전체 설정 모드
+- Router(config-if)#exit            -> 인터페이스 설정 모드
+- Router(config)#line console 0
+- Router(config-line)#exit          -> 라인 설정 모드
+- Router(config)#router ospf 1
+- Router(config-router)#            -> 라우터 설정 모드
+- Router(config-router)#end
+
+- 이용자모드와 관리자모드를 EXEC 모드라고도 하며, 설정을 제외한 show, debug, ping 등과 같은 네트워크 
+- 관리용 명령어를 사용할 수 있다.
+
+- 전체 설정 모드에서는 장비명, 콘솔 포트 암호 및 관리자 모드용 암호 등ㅇ 장비 전체에 영향을 미치는 설정을 할 수 - 있다.
+
+- 인터페이스 설정 모드에서는 인터페이스 활성화, 인터페이스 IP 주소 등 해당 인터페이스와 관련된 명령어를 사용할 - 수 있다.
+
+- exit 명령어를 사용하면 상위 모드로 빠져나오고, end 명령어나 Control+z 명령어를 입력하면 관리자 모드로 
+- 빠져나온다.
+
+- 에러 메세지
+- Ambiguous command -> 모호한 명령어를 입력했을 때 
+- Incomplete command -> 미완성 명령어 
+- Invalid input detected at '^' marker -> 잘못된 명령어를 입력했을 때
+
+- 관리자 모드
+- clock [ clock set 1:1:1 19 may 2024 ]
+- 장비의 시간을 설정하는 명령어
+- show clock 
+- 장비에 설정된 시간을 확인하는 명령어
+
+- 전체 설정 모드
+- hostname R1
+- 라우터의 이름을 지정 
+- no ip domain-lookip
+- 관리자 모드나 이용자 모드에서 명령어가 아닌 문자열을 입력하면 문자열에 해당하는 IP 주소를 알아내기 위해 DNS 
+- 서버를 찾는데, 이 때 시간이 많이 걸린다. 위의 명령어를 사용하면 명령어를 잘못입력해도 네임 서버를 찾지 않는다.
+- enable secret cisco
+- 라우터의 관리자 모드로 들어가기 위한 암호를 cisco라고 지정
+
+- 라인 설정 모드
+- 콘솔 라인 및 원격 접속을 위한 텔넷 라인과 관련된 기본적인 설정
+- line console 0
+- 콘솔 라인 설정 모드로 들어간다.
+- logging synchronous
+- 명령어 입력 도중 콘솔 화면에 시스템 메세지가 표시될 때 새로 줄을 바꾸라는 명령어
+- exec-timeout 0
+- 장비와 콘솔로 접속 후 기본적으로 10분 동안 아무런 입력이 없으면 자동으로 콘솔 화면에서 빠져 나온다.
+
+- line vty 0 4
+- 텔넷 라인 설정 모드로 들어간다.
+- 동시 텔넷 접속 가능한 수는 IOS 버전이나 기능에 따라 다르다
+- line vty 0 ?
+- 동시 텔넷 접속 수 확인하는 명령어다.
+- password cisco
+- 텔넷용 암호를 설정
+
+- show startup-config
+
+- show running-config
+- 명령어를 저장하지 않으면 전원을 끄면 명령어가 사라진다
+- 현재 적용되고 있는 설정 내용 확인
+
+- copy running-config startup-config 
+- write memory
+- 현재의 DRAM에 있는 설정 내용을 NVRAM에 저장하는 명령어
+
+- show config
+- 저장된 내용확인
+
+- NVRAM에 저장된 설정은 장비가 재부팅될때 적용
+- 현재 NVRAM에 저장된 내용을 DRAM으로 복하사여 바로 적용시키려면
+- copy startup-config running-config
+- 기존의 DRAM에 있던 내용에 NVRAM의 내용이 추가
+
+- 저장된 설정 지우기
+- erase startup-config
+- NVRAM에 저장되어 있는 설정을 삭제한다.
+- reload 

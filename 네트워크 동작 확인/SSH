@@ -1,0 +1,37 @@
+- [] 안에 값은 고정 값이 아닌 정하는 값
+
+- SSH ( Secure Shell )
+- 원격 접속 시 상대를 확인하는 인증 기능 외에 텔넷에 없는 패킷 암호화 기능, 패킷 변조를 방지하는 무결성 확인 기능을 제공하여 보안성이 뛰어나다
+- Version 2 권장
+
+- SSH에서 사용할 암호키 만들기
+- ip domain-name [cisco.com]
+- 적당한 도메인 이름을 지정
+- cryto key generate rsa modulus 1024
+- 암호키를 만들면서 키의 길이를 지정. SSH 2를 사용하려면 768 비트 이상을 지정
+
+- 로컬 DB 만들기
+- username [ccna] password [cisco]
+- SSH에서 사용할 이용자명과 암호를 지정
+- line vty 0 4
+- 원격 라인 설정 모드
+- login local
+- 앞서 설정한 이용자명과 암호를 이용하여 원격 접속자를 인증하도록 설정
+
+- SSH 옵션 설정
+- ip ssh version 2
+- SSH 버전 2 접속만 허용
+- line vty 0 4
+- transport input ssh
+- 원격 접속 방식을 SSH만 가능하게 한다. 텔넷 접속은 차단
+
+- ssh -v 2 -l [ccna] [1.1.30.3]
+- -v 옵션을 이용하여 버전을 지정
+- -l 옵션을 이용하여 이용자명을 지정
+- 접속 ip 주소를 지정
+
+- show ssh
+- 현재 접속된 SSH 버전, 암호화 방식, 무결성 확인 방식, 이용자명 등을 확인
+
+
+
