@@ -1,0 +1,50 @@
+- PPP ( Point to Point Protocol )
+- HDLC와 마찬가지로 연결되는 상대가 하나인 포인트 투 포인트 환경에서 사용되는 장거리 통신망용 링크 레이어 프로토콜이다.
+- LCP ( Link Control Protocol) NCP(Network Control Protocol)로 구성된다.
+
+- LCP ( Link Control Protocol)
+- PPP로 동작하는 두 장비 간의 링크를 셋업하기 위하여 사용된다.
+- 회선 품질 모니터링 
+- 프레임 수신측이 에러 없이 제대로 수신한 패킷 및 바이트 수를 상대에게 알려줄 수 있다.
+- 송신측이 자신이 보낸 수와 상대가 받았다고 알려준 수를 비교하여 패킷 손실률을 계산한다.
+- 설정된 값 이상으로 에러가 발생하면 해당 링크를 다운시켜 라우팅 프로토콜로 하여금 더 좋은 경로를 선택할 수 있게 한다 ( 회선 품질 모니터링, LQM(Link Quality Monitoring ))
+
+- 링크 루프 탐지
+- PPP링크를 구성하는 DSU/CSU, 장거리 통신망 등에서 상대가 보내는 프레임을 목적지로 전송하지 않고 거꾸로 상대에게 전송하는 것을 루프 테스트라고 한다. -> 회선이나 장비가 제대로 동작하는지 확인하기 위해
+- 루프 테스트 후에 다시 정상상태로 복귀시켜야 제대로 통신이 이루어지는데, 그대로 둔 경우나, 장애발생으로 루프가 걸리는 경우 PPP가 찾아 낼 수 있다.
+
+- Multilink
+- 이더넷 스위치에서 사용하는 이더채널과 같이 여러 개의 회선을 하나의 회선처럼 사용할 수 있다.
+
+- 인증
+- 인증방식으로 PAC,CHAP 등이 있다.
+- PAP(Password Authentication Protocol)은 이용자명과 암호를 평문으로 전송하기 때문에 보안성이 떨어진다.
+- CHAP(Challenge Handshake Authentication Protocol)은 실제 암호는 전송되지 않고, 암호를 이용해서 만든 코드값만 MD5로 전송해서 보안성이 좋다
+
+- 이러한 옵션들은 명시적으로 설정해주어야한다. 링크가 설정되면 인증후에 NCP가 동작하여 하나 이상의 네트워크 계층 프로토콜을 동작시킨다
+
+
+- ppp 설정
+- interface [s1/1]
+- encapsulation ppp
+
+- ppp는 넥스트 홉 ip 주소를 호스트 루트 즉, 32비트 마스크를 가진 네트워크로 라우팅 테이블에 인스톱시킨다.
+
+- 호스트 루트 제거
+- interface [s1/1]
+- no peer neighbor-route
+
+- 라우팅 테이블 정리
+- clear ip route *
+
+
+- PPP 인증
+- username [R4] password [cisco]
+- 이용자명과 암호를 설정. 이용자묭은 상대 장비의 호스트 이름을 사용. 암호명은 두 라우터에서 동일하게 지정
+- interface [s1/1]
+- encapsulation ppp
+- ppp authentication chap
+- 인증 방식 지정
+
+- debug ppp authentication
+- ppp 인증 디버깅 
