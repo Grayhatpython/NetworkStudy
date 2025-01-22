@@ -11,7 +11,34 @@
 - GRE (Generic Routing Encapsulation)
 - 라우팅이 불가능한 패킷을 라우팅 가능한 패킷의 내부에 넣어 전송할 때 사용한느 프로토콜
 
-- GRE 동작 방식
+- Tunnel Interface IP address
+- Point-to-Point
+
+
+- GRE 동작 방식         
+                            TTL = 255                           TTL = 1 
+                            OSPF의 TTL은 1 이지만 L3 헤더에 Tunnel Header을 인캡슐레이션하면서
+                            TTL이 255로 늘어나서 라우팅 프로토콜의 Hello 전달될 수 있다.
+                    [200.1.1.1] | [201.1.1.1] | GRE | [172.16.1.1] | [224.0.0.5] | OSPF Hello
+                            Tunnel Header
+                            
+[172.16.1.1/24]                [ OSPF Neighbor & Update ]            [172.16.1.2/24]
+       R1  [ 200.1.1.1, gi0/0 ] <------------------> [ 201.1.1.1, gi0/0 ] R2
+- R1 routing table
+- O 10.10.20.0/24 (110/1001) via 172.16.1.2, tunnel 1
+
+
+- interface tunnel 1                                        interface tunnel 1
+- ip address 172.16.1.1 255.255.255.0                       ip address 172.16.1.2 255.255.255.0
+- tunnel source gi0/0                                       tunnel source gi0/0
+- tunnel destination 201.1.1.1                              tunnel destination 200.1.1.1
+- ip ospf 1 area 0                                          ip ospf 1 area 0
+
+- Packet Forwarding
+-  [200.1.1.1] | [201.1.1.1] | GRE | [172.16.1.1] | [10.10.20.2] | Packet
+          Tunnel Header
+
+
 - 원래의 패킷에 GRE를 위한 헤더를 추가한다.
 - R2가 원격지인 R1에게 패킷을 전송하는 경우를 살펴보자
 
@@ -28,4 +55,20 @@
 - 추가된 IP 헤더에서 사용한느 출발지 IP 주소는 터널의 출발지 주소인 공인 IP 주소 [1.1.24.2]를 사용하고, 목적지 IP 주소는 터널의 목적지 공인 IP 주소인 [1.1.14.1]로 설정한다.
 - 즉, GRE을 위하여 추가된 라우팅 가능한 터널 목적지 주소만을 참조하여 라우팅하므로 인터넷을 통하여 전송이 가능하다.
 - GRE 헤더에는 GRE 내부의 패킷 정보가 표시된다. 즉 16비트 길이의 프로토콜 타입과 GRE가 실어나르는 패킷의 종류가 표시 -> 이더넷과 동일한 종류
+
+- interface tunnel [12]
+- 적당한 터널 번호를 사용 R2와 통신할 GRE 터널 설정 모드
+
+- ip address [10.1.12.1] [255.255.255.0]
+- 터널 인터페이스에 사설 IP 주소를 부여
+
+- tunnel mode gre ip
+- 터널 구성 방식을 gre ip로 지정
+
+- tunnel source [f0/0]
+- 터널의 출발지 주소를 지정. 공인 IP주소가 설정된 인터페이스를 지정하거나, 직접 IP 주소를 지정
+
+- tunnel destination [1.1.24.2]
+- 인터넷 or 외부망에서 라우팅 가능한 IP주소를 사용하여 터널의 목적지 IP주소를 지정
+- 본사에서 지정한 터널의 출발지/목적지 IP 주소는 지사에서는 목적지/출발지 IP주소로 설정해야 한다.
 
